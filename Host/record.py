@@ -9,7 +9,7 @@ def record_session(port, filename):
     
     try:
         ser = serial.Serial(port, 115200, timeout=1)
-        time.sleep(2)
+        # time.sleep(1)
         
         ser.reset_input_buffer()
         while ser.in_waiting:
@@ -18,48 +18,28 @@ def record_session(port, filename):
                 print(f"[Arduino] {line}")
         
         print("\n--- Arduino Ready ---")
-        print("Press ENTER to START calibrating")
+        print("Press ENTER to START recording")
         input()
         
         ser.write(b'S')
 
-        print("--- Waiting for Calibration ---")
-
-        while True:
-            if ser.in_waiting > 0:
-                try:
-                    line = ser.readline().decode('utf-8').strip()
-                    if not line:
-                        continue
-                    
-                    if line.startswith("CAL:") or line.startswith("INFO:"):
-                        print(f"[Arduino] {line}")
-                        sys.stdout.flush()
-                    
-                    if line.find("High Accuracy") > -1:
-                        break
-
-                except Exception as e:
-                    print(f"\nError processing line: {line}\n{e}")
-
-        print("--- Calibrated, press ENTER to start recording ---")
-        input()
-        
         start_time = time.time()
         
         print("RECORDING. Press Ctrl+C to STOP")
         print("-------------------------------")
 
-        print("WA_X, WA_Y, WA_Z, WG_X, WG_Y, WG_Z", end="")
+        print("PS, LA_X, LA_Y, LA_Z, G_X, G_Y, G_Z, Q_R, Q_I, Q_J, Q_K", end="")
         sys.stdout.flush()
 
         filepath = os.path.join(os.path.curdir, os.pardir, "Data", filename)            
         with open(filepath, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([
-                "timestamp", 
-                "world_accel_x", "world_accel_y", "world_accel_z",
-                "world_gyro_x", "world_gyro_y", "world_gyro_z"
+                "timestamp",
+                "pressure_value",
+                "linear_accel_x", "linear_accel_y", "linear_accel_z",
+                "gyro_x", "gyro_y", "gyro_z",
+                "orientation_r", "orientation_i", "orientation_j", "orientation_k"
             ])
 
             while True:                
@@ -69,15 +49,15 @@ def record_session(port, filename):
                         if not line:
                             continue
                         
-                        if line.startswith("CAL:") or line.startswith("INFO:"):
-                            sys.stdout.write('\r' + ' ' * 80 + '\r')
+                        if line.startswith("INFO:"):
+                            sys.stdout.write('\r' + ' ' * 120 + '\r')
                             print(f"[Arduino] {line}")
-                            print("WA_X, WA_Y, WA_Z, WG_X, WG_Y, WG_Z", end="")
+                            print("PS, LA_X, LA_Y, LA_Z, G_X, G_Y, G_Z, Q_R, Q_I, Q_J, Q_K", end="")
                             sys.stdout.flush()
                         
                         else:
                             values = line.split(',')
-                            if len(values) == 6:
+                            if len(values) == 11:
                                 timestamp = time.time() - start_time
                                 writer.writerow([timestamp] + values)
                                 
@@ -88,8 +68,9 @@ def record_session(port, filename):
                                 sys.stdout.flush()
                                 
                     except UnicodeDecodeError:
-                        sys.stdout.write('\r' + '!' * 80 + '\r') # Show error
+                        sys.stdout.write('\r' + '!' * 120 + '\r') # Show error
                         sys.stdout.flush()
+                        
                     except Exception as e:
                         print(f"\nError processing line: {line}\n{e}")
 
