@@ -15,6 +15,6 @@ def parse_arguments():
     return parser.parse_args()
 
 def generate_filename(args):
-    timestamp = time.strftime("%m%d%H%M") 
+    timestamp = time.strftime("%m%d%H%M")
     filename = f"P{args.participant:03d}_T{args.trial:03d}_{args.descriptor}_pss-{args.pss:02d}_fss-{args.fss:02d}_{timestamp}.csv"
     return filename

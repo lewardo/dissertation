@@ -42,12 +42,25 @@ def record_session(port, filename):
                 "orientation_r", "orientation_i", "orientation_j", "orientation_k"
             ])
 
-            while True:                
+            prev_time = time.time()
+            sample_num = 0
+            while True:
+                if time.time() - prev_time > 0.03:
+                    prev_time = time.time()
+                    sample_num += 1
+
+                    sys.stdout.write('\r' + ' ' * 120 + '\r')
+                    print(f"*** Sample {sample_num} Dropped ***")
+                    
+                    continue
+
                 if ser.in_waiting > 0:
                     try:
                         line = ser.readline().decode('utf-8').strip()
                         if not line:
                             continue
+
+                        prev_time = time.time()
                         
                         if line.startswith("INFO:"):
                             sys.stdout.write('\r' + ' ' * 120 + '\r')
@@ -58,11 +71,13 @@ def record_session(port, filename):
                         else:
                             values = line.split(',')
                             if len(values) == 11:
+                                sample_num += 1
+
                                 timestamp = time.time() - start_time
                                 writer.writerow([timestamp] + values)
                                 
                                 f_vals = [f"{float(v):>8.3f}" for v in values]
-                                out_str = ", ".join(f_vals)
+                                out_str = ", ".join([f"{timestamp:>8.3f}"] + f_vals)
 
                                 sys.stdout.write('\r' + out_str)
                                 sys.stdout.flush()
