@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 
+# Participant 9, 12 left handed
+
 import sys
 
 from port import find_arduino_port
