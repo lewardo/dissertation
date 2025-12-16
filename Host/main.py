@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Participant 9, 12 left handed
+# Participant 9, 12,  left handed
 
 import sys
 
