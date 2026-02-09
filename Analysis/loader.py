@@ -1,9 +1,6 @@
 #! /usr/bin/env python
 
-import os
-import re
-import csv
-
+import os, re, csv
 import numpy as np
 
 ALPHABET = 0
@@ -43,7 +40,7 @@ def load_file_keys(path: str) -> dict:
 def load_handwriting(file_info: tuple, filter: np.array = None) -> np.array:
     file_names, file_keys = file_info
 
-    if filter is None or filter == []:
+    if filter is None:
         filter = np.ones_like(file_names, dtype=bool)
     else:
         filter = np.all(filter, axis=0)
@@ -68,7 +65,7 @@ def load_handwriting(file_info: tuple, filter: np.array = None) -> np.array:
     return filtered_data
 
 def save_sequence(path: str, file_key: tuple, sequence: np.array, header: list[str]) -> str:
-    participant, trial, descriptor, pss, rest, timestamp = file_key
+    participant, trial, descriptor, pss, rest = file_key
 
     directory = os.path.join(os.path.curdir, os.pardir, "Data", path)
     filename = f"P{participant:03d}_T{trial:03d}_{["abc", "dog", "rick", "xmas"][descriptor]}_pss-{pss:02d}_fss-{rest:02d}.csv"
@@ -77,6 +74,6 @@ def save_sequence(path: str, file_key: tuple, sequence: np.array, header: list[s
     with open(file_path, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(header)
-        writer.writerows((f"{v:.4f}" for v in row) for row in sequence)
+        writer.writerows((f"{v:.6f}" for v in row) for row in sequence)
     
     return filename
