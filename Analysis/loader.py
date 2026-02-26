@@ -11,7 +11,7 @@ CHRISTMAS = 3
 def load_file_keys(path: str) -> dict:
     print("Loading file keys...")
 
-    file_regex = "P(\\d{3})_T(\\d{3})_(abc|dog|rick|xmas)_pss-(\\d{2})_fss-(\\d{2})_\\d{8}\\.csv"
+    file_regex = "P(\\d{3})_T(\\d{3})_(abc|dog|rick|xmas)_pss-(\\d{2})_fss-(\\d{2})(?:_\\d{8})?\\.csv"
     directory = os.path.join(os.path.curdir, os.pardir, "Data", path)
 
     count = 0
