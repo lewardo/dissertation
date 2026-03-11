@@ -58,14 +58,6 @@ def augment_sequence(sequence: np.array) -> np.array:
     gyro_energy = np.sum(gyro ** 2, axis=1)
 
     # difference for correlation measures
-    # accel_xy = sequence[:, 1] * sequence[:, 2] # OR MINUS ??
-    # accel_yz = sequence[:, 2] * sequence[:, 3]
-    # accel_xz = sequence[:, 3] * sequence[:, 1]
-
-    # gyro_xy = sequence[:, 4] * sequence[:, 5]
-    # gyro_yz = sequence[:, 5] * sequence[:, 6]
-    # gyro_xz = sequence[:, 6] * sequence[:, 4]
-
     return np.column_stack([sequence, accel_power, gyro_energy])
 
 if __name__ == "__main__":
@@ -94,6 +86,6 @@ if __name__ == "__main__":
         # save_sequence("Calibrated", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
         # save_sequence("Filtered", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
         # save_sequence("Trimmed", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        save_sequence("Augmented", key, augmented, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z", "accel_power", "gyro_energy"])
+        save_sequence("Reaugmented", key, augmented, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z", "accel_power", "gyro_energy", "accel_xy", "accel_yz", "accel_xz", "gyro_xy", "gyro_yz", "gyro_xz"])
 
     print(f"Finished processing {count} files.")

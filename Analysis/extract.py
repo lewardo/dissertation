@@ -31,7 +31,7 @@ def extract_features(sequence: np.array) -> np.array:
     return np.hstack([length, minimum, maximum, mean, deviation, skew, kurt, power, mcr])
 
 if __name__ == "__main__":
-    file_info, key_info = load_file_keys("Trimmed")
+    file_info, key_info = load_file_keys("Augmented")
 
     participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
     data = load_handwriting(file_info) # ,[])
@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
         features = extract_features(data[key])
 
-        print(f"CAlculating features for file {count:03}/{len(data)}", end='\r')
-        save_sequence("Features", key, [[feature] for feature in features], ["features"])
+        print(f"Extracting features from file {count:03}/{len(data)}", end='\r')
+        save_sequence("Features_Augmented", key, [[feature] for feature in features], ["features"])
 
     print(f"Finished processing {count} files.")
