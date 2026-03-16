@@ -1,0 +1,15 @@
+fatigue Model report (64x32, all-spect)
+Classifier confusion matrix
+[[43 17  0]
+ [18 20  2]
+ [ 3  0 17]]
+Classifier report
+              precision    recall  f1-score   support
+
+           0       0.67      0.72      0.69        60
+           1       0.54      0.50      0.52        40
+           2       0.89      0.85      0.87        20
+
+    accuracy                           0.67       120
+   macro avg       0.70      0.69      0.69       120
+weighted avg       0.67      0.67      0.67       120

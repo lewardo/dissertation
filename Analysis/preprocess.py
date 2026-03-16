@@ -50,16 +50,6 @@ def trim_sequence(sequence: np.array, slice: int = 8, tolerance: float = 2.0, cu
 
     return sequence[start:end] ## return the middle bit without the noise at the start/end
 
-# Take the 
-def augment_sequence(sequence: np.array) -> np.array:
-    accel, gyro = sequence[:, 1:4], sequence[:, 4:7]
-    
-    accel_power = np.sqrt(np.sum(accel ** 2, axis=1))
-    gyro_energy = np.sum(gyro ** 2, axis=1)
-
-    # difference for correlation measures
-    return np.column_stack([sequence, accel_power, gyro_energy])
-
 if __name__ == "__main__":
     file_info, key_info = load_file_keys("Trimmed")
 
@@ -72,20 +62,15 @@ if __name__ == "__main__":
     for key in data:
         count += 1
 
-        # calibrated = calibrate_sequence(data[key])
-        # filtered = filter_sequence(calibrated)
-        # trimmed = trim_sequence(filtered)
-        augmented = augment_sequence(data[key])
+        calibrated = calibrate_sequence(data[key])
+        filtered = filter_sequence(calibrated)
+        trimmed = trim_sequence(filtered)
 
         # print(data[key].shape, calibrated.shape, filtered.shape, trimmed.shape)
 
-        # print(f"Drawing file {count:03}/{len(data)}", end='\r')
-        # print(key)
-
         print(f"Saving file {count:03}/{len(data)}", end='\r')
-        # save_sequence("Calibrated", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        # save_sequence("Filtered", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        # save_sequence("Trimmed", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        save_sequence("Reaugmented", key, augmented, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z", "accel_power", "gyro_energy", "accel_xy", "accel_yz", "accel_xz", "gyro_xy", "gyro_yz", "gyro_xz"])
+        save_sequence("Calibrated", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence("Filtered", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence("Trimmed", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
 
     print(f"Finished processing {count} files.")

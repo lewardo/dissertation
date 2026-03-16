@@ -31,7 +31,7 @@ def record_session(port, filename):
         print("PS, LA_X, LA_Y, LA_Z, G_X, G_Y, G_Z, Q_R, Q_I, Q_J, Q_K", end="")
         sys.stdout.flush()
 
-        filepath = os.path.join(os.path.curdir, os.pardir, "Data", filename)            
+        filepath = os.path.join(os.path.curdir, os.pardir, "Data", "Series", "Raw", filename)            
         with open(filepath, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([
