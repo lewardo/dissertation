@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 import quaternion as quat
 
-from loader import load_file_keys, load_handwriting, save_sequence
-from visualise import show_sequence
+from Analysis.util.loader import load_file_keys, load_handwriting, save_sequence
+from Analysis.util.visualise import show_sequence
 
 # Use the orientation quaternion to project the raw accelerometer and gyroscope axes into the page space
 def calibrate_sequence(sequence: np.array) -> np.array:
@@ -51,7 +51,7 @@ def trim_sequence(sequence: np.array, slice: int = 8, tolerance: float = 2.0, cu
     return sequence[start:end] ## return the middle bit without the noise at the start/end
 
 if __name__ == "__main__":
-    file_info, key_info = load_file_keys("Trimmed")
+    file_info, key_info = load_file_keys("Series/Raw")
 
     participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
     data = load_handwriting(file_info) # ,[])

@@ -4,7 +4,7 @@ import numpy as np
 from scipy.fftpack import dct
 from numpy.lib.stride_tricks import sliding_window_view
 
-from loader import load_file_keys, load_handwriting, save_sequence
+from Analysis.util.loader import load_file_keys, load_handwriting, save_sequence
 
 def extract_spectra(sequence: np.array) -> np.array:
     frames = sliding_window_view(sequence, window_shape=64, axis=0)[::32]
@@ -20,7 +20,7 @@ def extract_features(sequence: np.array) -> np.array:
     spectrum_bands = extract_spectra(sequence)
 
     # Start with c. 40
-    seq_len = len(sequence)
+    seq_len = np.log(len(sequence))
     seq_mean = np.mean(sequence, axis=0)
     seq_std =  np.std(sequence, axis=0)
     seq_min =  np.min(sequence, axis=0)
@@ -30,13 +30,13 @@ def extract_features(sequence: np.array) -> np.array:
 
     spec_means = np.mean(spectrum_bands, axis=1).flatten()
     spec_stds = np.std(spectrum_bands, axis=1).flatten()
-    spec_mins = np.min(spectrum_bands, axis=1).flatten()
-    spec_maxs = np.max(spectrum_bands, axis=1).flatten()
+    # spec_mins = np.min(spectrum_bands, axis=1).flatten()
+    # spec_maxs = np.max(spectrum_bands, axis=1).flatten()
     spec_pows = np.mean(spectrum_bands ** 2, axis=1).flatten()
     # spec_mcr = np.count_nonzero(np.diff(np.sign(spectrum_bands - spec_mean), axis=0), axis=0)
 
     seq_stats = [seq_len, seq_mean, seq_std, seq_min, seq_max, seq_pow, seq_mcr]
-    spec_stats = [spec_means, spec_stds, spec_mins, spec_maxs, spec_pows]
+    spec_stats = [spec_means, spec_stds, spec_pows]
 
     return np.hstack([*seq_stats, *spec_stats])
 

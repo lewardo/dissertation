@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 from joblib import dump
 
-from loader import load_file_keys, load_handwriting
+from Analysis.util.loader import load_file_keys, load_handwriting
 
 SHAPE = [128, 64]
 FILTERS = "all-spect"
@@ -71,7 +71,7 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
 
         classifier_candidate = MLPClassifier(
             hidden_layer_sizes=shape, 
-            activation='relu',
+            activation='sigmoid',
             max_iter=int(1e12), 
             learning_rate='adaptive',
             solver='adam',

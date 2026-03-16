@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from loader import load_file_keys, load_handwriting, save_sequence
+from Analysis.util.loader import load_file_keys, load_handwriting, save_sequence
 
 def augment_sequence(sequence: np.array) -> np.array:
     accel, gyro = sequence[:, 1:4], sequence[:, 4:7]
