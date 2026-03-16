@@ -11,11 +11,11 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 from joblib import dump
 
-from Analysis.util.loader import load_file_keys, load_handwriting
+from util.loader import load_file_keys, load_handwriting
 
-SHAPE = [128, 64]
+SHAPE = [64]
 FILTERS = "all-spect"
-ATTEMPTS = 5
+ATTEMPTS = 10
 
 # Normalise test scores to range [0,1]
 def get_key_target(key: tuple[int], mode: int) -> list[int]:
@@ -60,6 +60,12 @@ def get_sample_weights(train_target: np.ndarray) -> np.ndarray:
 
     return [np.max(counts) / counts.counts[sample] for sample in classes]
 
+def check_targets_stratified(train_target: np.ndarray, test_target: np.ndarray) -> bool:
+    train_classes = np.unique(np.argmax(train_target, axis=1))
+    test_classes = np.unique(np.argmax(test_target, axis=1))
+
+    return train_classes.shape == test_classes.shape
+
 def train_classifier(data: dict, mode: str, shape: list[int], N: int):
     classifier = None
     current_score = -1
@@ -69,28 +75,30 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
 
         train_data, test_data, train_target, test_target = split_data(data, mode=mode)
 
+        if not check_targets_stratified(train_target, test_target):
+            print(f"DATA NOT STRATIFIED, SKIPPING")
+            continue
+
         classifier_candidate = MLPClassifier(
             hidden_layer_sizes=shape, 
-            activation='sigmoid',
-            max_iter=int(1e12), 
+            activation='logistic',
+            max_iter=int(1e9), 
             learning_rate='adaptive',
             solver='adam',
-            tol=1e-9
+            tol=1e-6
         ).fit(
             X=train_data,
             y=train_target,
             sample_weight=get_sample_weights(train_target)
         )
         
-        classifier_score = classifier_candidate.score(
-            X=test_data, 
-            y=test_target
-        )
+        classifier_score = classifier_candidate.score(X=test_data, y=test_target)
 
-        print(f"\tScored {classifier_score}")
+        print(f"\tScored {classifier_score} ({classifier_candidate.score(X=train_data, y=train_target)})")
         if current_score < classifier_score:
             classifier, current_score = classifier_candidate, classifier_score
 
+    score = classifier.score(X=test_data, y=test_target)
     confusion = confusion_matrix(test_target.argmax(axis=1), classifier.predict(test_data).argmax(axis=1))
     report = classification_report(test_target.argmax(axis=1), classifier.predict(test_data).argmax(axis=1), zero_division=0)
     
@@ -101,9 +109,9 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
         f"Classifier report", 
         f"{report}"
     ])
+    
     print(feedback)
-
-    return classifier, current_score, feedback
+    return classifier, score, feedback
 
 def save_classifier(classifier: MLPClassifier, score: float, feedback: str, mode: str):
     name = f"models/{mode}_Pspl_{strftime("%m%d%H%M")}_{FILTERS}_{int(score * 100)}"

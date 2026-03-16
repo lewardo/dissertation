@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 import scipy.signal as signal
 import quaternion as quat
 
-from Analysis.util.loader import load_file_keys, load_handwriting, save_sequence
-from Analysis.util.visualise import show_sequence
+from util.loader import load_file_keys, load_handwriting, save_sequence
 
 # Use the orientation quaternion to project the raw accelerometer and gyroscope axes into the page space
 def calibrate_sequence(sequence: np.array) -> np.array:

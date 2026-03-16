@@ -1,0 +1,15 @@
+stress Model report (128, all-spect)
+Classifier confusion matrix
+[[13  0  7]
+ [ 1 79  0]
+ [ 0 20  0]]
+Classifier report
+              precision    recall  f1-score   support
+
+           0       0.93      0.65      0.76        20
+           1       0.80      0.99      0.88        80
+           2       0.00      0.00      0.00        20
+
+    accuracy                           0.77       120
+   macro avg       0.58      0.55      0.55       120
+weighted avg       0.69      0.77      0.72       120
