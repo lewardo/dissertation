@@ -1,0 +1,19 @@
+fatigue model report (64x64-adam-relu, all24-p0-a1-e1)
+
+0.4 test accuracy
+
+Classifier confusion matrix
+[[15 45  0]
+ [ 2 38  0]
+ [ 0 20  0]]
+
+Classifier report
+              precision    recall  f1-score   support
+
+           0       0.88      0.25      0.39        60
+           1       0.37      0.95      0.53        40
+           2       0.00      0.00      0.00        20
+
+    accuracy                           0.44       120
+   macro avg       0.42      0.40      0.31       120
+weighted avg       0.56      0.44      0.37       120

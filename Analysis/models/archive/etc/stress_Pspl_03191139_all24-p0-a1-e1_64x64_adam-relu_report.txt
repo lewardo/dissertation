@@ -1,0 +1,19 @@
+stress model report (64x64-adam-relu, all24-p0-a1-e1)
+
+0.6208333333333333 test accuracy
+
+Classifier confusion matrix
+[[19  0  1]
+ [ 2 57 21]
+ [ 3 13  4]]
+
+Classifier report
+              precision    recall  f1-score   support
+
+           0       0.79      0.95      0.86        20
+           1       0.81      0.71      0.76        80
+           2       0.15      0.20      0.17        20
+
+    accuracy                           0.67       120
+   macro avg       0.59      0.62      0.60       120
+weighted avg       0.70      0.67      0.68       120
