@@ -17,6 +17,8 @@ from util.loader import load_file_keys, load_handwriting
 # Augmentation: norm/aug
 # Features:
 
+FEATURES = "Features/30-Lite-1"
+
 SHAPE = [128]
 OPTIMISER = 'adam'
 ACTIVATION = 'relu'
@@ -122,8 +124,8 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
             report = classification_report(target_output, candidate_output, sample_weight=test_weights)
     
     feedback = '\n'.join([
-        f"{mode} model report ({'x'.join([str(dim) for dim in shape])}-{MODEL}, {DESCRIPTION})\n", 
-        f"{score} test accuracy\n",
+        f"{mode} model report ({'x'.join([str(dim) for dim in shape])}-{OPTIMISER}-{ACTIVATION}, {DESCRIPTION})\n", 
+        f"{score} test accuracy ({FEATURES})\n",
         f"Classifier confusion matrix",
         f"{confusion}\n",
         f"Classifier report", 
@@ -133,13 +135,13 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
     return classifier, feedback
 
 def save_classifier(classifier: MLPClassifier, feedback: str, mode: str):
-    name = f"models/{mode}_Pspl_{strftime("%m%d%H%M")}_{DESCRIPTION}_{'x'.join([str(dim) for dim in SHAPE])}_{MODEL}"
+    name = f"models/40-{mode}_Pspl_{strftime("%m%d%H%M")}_{DESCRIPTION}_{'x'.join([str(dim) for dim in SHAPE])}_{OPTIMISER}-{ACTIVATION}"
     with open(f"{name}_report.txt", 'w') as f:
         f.write(feedback)
-    dump(classifier, f"{name}_model.gz")
+    dump(classifier, f"{name}_model.gz", compress=('gzip', 9))
 
 if __name__ == "__main__":
-    file_info, key_info = load_file_keys("Features/Lite")
+    file_info, key_info = load_file_keys(FEATURES)
 
     participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
     data = load_handwriting(file_info)

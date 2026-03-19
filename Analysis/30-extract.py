@@ -6,6 +6,8 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 from util.loader import load_file_keys, load_handwriting, save_sequence
 
+CONFIG = 1
+
 # Pipeline 0:
 # Spectral bands: 64/32 sample DCT-II, bottom 38 bins (0-15hz), 4 equal bands with mean abs mag
 # Features (grouped by metric not axis)
@@ -68,6 +70,6 @@ if __name__ == "__main__":
 
         features = extract_features(data[key])
         print(f"Extracting features from file {count:03}/{len(data)}", end='\r')
-        save_sequence("Features/Lite", key, features.reshape((-1, 1)), ["features"])
+        save_sequence(f"Features/30-Lite-{CONFIG}", key, features.reshape((-1, 1)), ["features"])
 
     print(f"Finished processing {count} files.")
