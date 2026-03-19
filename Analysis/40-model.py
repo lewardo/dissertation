@@ -13,18 +13,14 @@ from joblib import dump
 
 from util.loader import load_file_keys, load_handwriting
 
-# Filters: all/desc of which samples
-# Augmentation: norm/aug
-# Features:
-
-FEATURES = "Features/30-Lite-1"
+FEATURES = "Features/30-Standard-1"
+FILTERS = "all24"
 
 SHAPE = [128]
 OPTIMISER = 'adam'
 ACTIVATION = 'relu'
 
-MODEL = f"{OPTIMISER}-{ACTIVATION}"
-DESCRIPTION = "all24-p0-a1-e1"
+MODEL_CONFIG = "all24-p0-a1-e1"
 ATTEMPTS = 10
 
 # Normalise test scores to range [0,1]
@@ -124,7 +120,7 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
             report = classification_report(target_output, candidate_output, sample_weight=test_weights)
     
     feedback = '\n'.join([
-        f"{mode} model report ({'x'.join([str(dim) for dim in shape])}-{OPTIMISER}-{ACTIVATION}, {DESCRIPTION})\n", 
+        f"{mode} model report ({'x'.join([str(dim) for dim in shape])}-{OPTIMISER}-{ACTIVATION}, {MODEL_CONFIG})\n", 
         f"{score} test accuracy ({FEATURES})\n",
         f"Classifier confusion matrix",
         f"{confusion}\n",
@@ -135,7 +131,7 @@ def train_classifier(data: dict, mode: str, shape: list[int], N: int):
     return classifier, feedback
 
 def save_classifier(classifier: MLPClassifier, feedback: str, mode: str):
-    name = f"models/40-{mode}_Pspl_{strftime("%m%d%H%M")}_{DESCRIPTION}_{'x'.join([str(dim) for dim in SHAPE])}_{OPTIMISER}-{ACTIVATION}"
+    name = f"models/40-{mode}_Pspl_{strftime("%m%d%H%M")}_{MODEL_CONFIG}_{'x'.join([str(dim) for dim in SHAPE])}_{OPTIMISER}-{ACTIVATION}"
     with open(f"{name}_report.txt", 'w') as f:
         f.write(feedback)
     dump(classifier, f"{name}_model.gz", compress=('gzip', 9))

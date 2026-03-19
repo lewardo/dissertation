@@ -67,10 +67,12 @@ def load_handwriting(file_info: tuple, filter: np.array = None) -> np.array:
 def save_sequence(path: str, file_key: tuple, sequence: np.array, header: list[str]) -> str:
     participant, trial, descriptor, pss, rest = file_key
 
-    directory = os.path.join(os.path.curdir, os.pardir, "Data", path)
     filename = f"P{participant:03d}_T{trial:03d}_{["abc", "dog", "rick", "xmas"][descriptor]}_pss-{pss:02d}_fss-{rest:02d}.csv"
-
+    
+    directory = os.path.join(os.path.curdir, os.pardir, "Data", path)
     file_path = os.path.join(directory, filename)
+
+    os.makedirs(directory, exist_ok=True)
     with open(file_path, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(header)

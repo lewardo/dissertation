@@ -57,7 +57,7 @@ def trim_sequence(sequence: np.array, slice: int = 8, tolerance: float = 2.0, cu
     return sequence[start:end] ## return the middle bit without the noise at the start/end
 
 if __name__ == "__main__":
-    file_info, key_info = load_file_keys("Series/Raw")
+    file_info, key_info = load_file_keys("Series/00-Raw")
 
     participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
     data = load_handwriting(file_info) # ,[])
@@ -75,8 +75,8 @@ if __name__ == "__main__":
         # print(data[key].shape, calibrated.shape, filtered.shape, trimmed.shape)
 
         print(f"Saving file {count:03}/{len(data)}", end='\r')
-        save_sequence(f"Calibrated-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        save_sequence(f"Filtered-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        save_sequence(f"Trimmed-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence(f"10-Calibrated-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence(f"10-Filtered-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence(f"10-Trimmed-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
 
     print(f"Finished processing {count} files.")

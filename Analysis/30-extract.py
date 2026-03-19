@@ -6,16 +6,19 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 from util.loader import load_file_keys, load_handwriting, save_sequence
 
-CONFIG = 1
+CONFIG = 0
+FEATURES = 0
 
 # Pipeline 0:
+# SIMPLE
+# Features (grouped by metric not axis)
+# Temporal: mean, std, power, mcr
+
+# Pipeline 1:
 # Spectral bands: 64/32 sample DCT-II, bottom 38 bins (0-15hz), 4 equal bands with mean abs mag
 # Features (grouped by metric not axis)
 # Temporal: mean, std, min, max, power, mcr
 # Spectral: mean, std, power (per band)
-
-# Pipeline 1:
-# SIMPLE
 
 def extract_spectra(sequence: np.array) -> np.array:
     frames = sliding_window_view(sequence, window_shape=64, axis=0)[::32]
@@ -57,7 +60,7 @@ def extract_features(sequence: np.array) -> np.array:
     ])
 
 if __name__ == "__main__":
-    file_info, key_info = load_file_keys("Series/Augmented")
+    file_info, key_info = load_file_keys(f"Series/20-Augmented-{FEATURES}")
 
     participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
     data = load_handwriting(file_info) # ,[])
@@ -70,6 +73,6 @@ if __name__ == "__main__":
 
         features = extract_features(data[key])
         print(f"Extracting features from file {count:03}/{len(data)}", end='\r')
-        save_sequence(f"Features/30-Lite-{CONFIG}", key, features.reshape((-1, 1)), ["features"])
+        save_sequence(f"Features/30-Extracted-A{FEATURES}-{CONFIG}", key, features.reshape((-1, 1)), ["features"])
 
     print(f"Finished processing {count} files.")
