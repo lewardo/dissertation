@@ -6,8 +6,8 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 from util.loader import load_file_keys, load_handwriting, save_sequence
 
-CONFIG = 0
-FEATURES = 0
+CONFIG = 1
+FEATURES = 2
 
 # Pipeline 0:
 # SIMPLE

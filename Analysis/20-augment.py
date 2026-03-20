@@ -4,7 +4,7 @@ import numpy as np
 
 from util.loader import load_file_keys, load_handwriting, save_sequence
 
-CONFIG = 0
+CONFIG = 2
 
 # Pipeline 0
 # No augmentation
@@ -46,8 +46,9 @@ if __name__ == "__main__":
         augmented = data[key]
 
         print(f"Saving file {count:03}/{len(data)}", end='\r')
-        save_sequence(f"Series/20-Augmented-{CONFIG}", key, augmented, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"
-                                                                        # , "accel_power", "gyro_energy"
+        save_sequence(f"Series/20-Augmented-{CONFIG}", key, augmented, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z", 
+                                                                        "accel_jx", "accel_jy", "accel_jz", 
+                                                                        "accel_power", "gyro_energy"
                                                                         ])
 
     print(f"Finished processing {count} files.")
