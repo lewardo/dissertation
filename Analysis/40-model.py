@@ -4,137 +4,81 @@ import numpy as np
 
 from time import strftime
 
-from sklearn.neural_network import MLPClassifier
-from sklearn.model_selection import train_test_split
-
+# from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split, GroupKFold
 from sklearn.metrics import confusion_matrix, classification_report, f1_score
 
 from joblib import dump
 
 from util.loader import load_file_keys, load_handwriting
 
-FEATURES = "Features/30-Standard-1"
+FEATURES = "Features/30-Extracted-A1-1" # simplest features
 FILTERS = "all24"
 
-SHAPE = [128]
-OPTIMISER = 'adam'
-ACTIVATION = 'relu'
-
-MODEL_CONFIG = "all24-p0-a1-e1"
-ATTEMPTS = 10
+ESTIMATORS = 200
 
 # Normalise test scores to range [0,1]
 def get_key_target(key: tuple[int], mode: int) -> list[int]:
+    assert(mode in ['stress', 'fatigue'], "invalid mode")
     if mode == 'stress':
         pss = key[3] # / 40
         return [pss < 14, 14 <= pss <= 26, pss > 26]
-    
     if mode == 'fatigue':
         rest = key[4] # / 52
         return [rest < 21, 21 <= rest <= 35, rest > 35]
 
-    return [0, 0, 0]
-
-def split_data(data: dict, mode: str = 'stress') -> tuple:
-    participant_keys = np.unique_values([key[0] for key in data])
-    participant_targets = np.array([
-        next(get_key_target(key, mode) for key in data if key[0] == participant_key) 
-        for participant_key in participant_keys
-    ])
-
-    participant_classes = np.argmax(participant_targets, axis=1)
-
-    # use indices bc we need to map with get key target and stuff
-    train_indices, test_indices = train_test_split(participant_keys, stratify=participant_classes)
-    
-    train_data = np.array([value.reshape(-1) for (key, value) in data.items() if key[0] in train_indices])
-    train_target = np.array([get_key_target(key, mode) for key in data if key[0] in train_indices])
-
-    test_data = np.array([value.reshape(-1) for (key, value) in data.items() if key[0] in test_indices])
-    test_target = np.array([get_key_target(key, mode) for key in data if key[0] in test_indices])
-
-    return train_data, test_data, train_target, test_target
-
-def get_sample_weights(train_target: np.ndarray) -> np.ndarray:
-    classes = np.argmax(train_target, axis=1)
-    counts = np.unique_counts(classes)
-
-    return [np.max(counts) / counts.counts[sample] for sample in classes]
-
-def check_targets_stratified(train_target: np.ndarray, test_target: np.ndarray) -> bool:
-    train_classes = np.unique(np.argmax(train_target, axis=1))
-    test_classes = np.unique(np.argmax(test_target, axis=1))
-
-    return train_classes.shape == test_classes.shape
-
-def train_classifier(data: dict, mode: str, shape: list[int], N: int):
-    classifier = None
+def train_forest_classifier(data: dict, mode: str, N: int):
     confusion, report = "", ""
-    score = -1
+    best, scores = -1, []
 
-    for i in range(N):
-        print(f"Attempting model {i+1} of {N}")
+    participants = np.array([key[0] for key in data.keys()])
 
-        train_data, test_data, train_target, test_target = split_data(data, mode=mode)
+    data_samples = np.array([value.reshape(-1) for value in data.values()])
+    data_targets = np.array([get_key_target(key, mode) for key in data.keys()])
 
-        while not check_targets_stratified(train_target, test_target):
-            train_data, test_data, train_target, test_target = split_data(data, mode=mode)
-            continue
+    group_fold = GroupKFold(n_splits=6)
 
-        classifier_candidate = MLPClassifier(
-            hidden_layer_sizes=shape, 
-            activation=ACTIVATION,
-            # verbose=True,
+    for train_index, test_index in group_fold.split(data_samples, data_targets, groups=participants):
+        train_data, test_data = data_samples[train_index], data_samples[test_index]
+        train_target, test_target = data_targets[train_index], data_targets[test_index]
 
-            ## LGFBS
-            # max_iter=int(2e2), 
-            # solver='lbfgs',
-
-            ## SGD
-            solver=OPTIMISER,
-            learning_rate='adaptive',
-            # learning_rate_init=5e-3,
-            tol=1e-10,
-            max_iter=int(1e9)
+        classifier = RandomForestClassifier(
+            n_estimators=N, 
+            class_weight='balanced'
+            # random_state=42
         ).fit(
             X=train_data,
-            y=train_target,
-            sample_weight=get_sample_weights(train_target)
+            y=train_target
         )
         
-        candidate_output = classifier_candidate.predict(test_data).argmax(axis=1)
-        target_output = test_target.argmax(axis=1)
+        output = classifier.predict(test_data).argmax(axis=1)
+        target = test_target.argmax(axis=1)
 
-        test_weights = get_sample_weights(test_target)
-        candidate_score = f1_score(
-            target_output, 
-            candidate_output, 
-            average='micro',
-            sample_weight=test_weights
-        )
-
-        print(f"\tScored {candidate_score}")
-        if score < candidate_score:
-            classifier, score = classifier_candidate, candidate_score
-            confusion = confusion_matrix(target_output, candidate_output, sample_weight=test_weights)
-            report = classification_report(target_output, candidate_output, sample_weight=test_weights)
+        
+        score = f1_score(target, output, average='macro')
+        scores.append(score)
+        if score > best:
+            best = score
+            confusion = confusion_matrix(target, output)
+            report = classification_report(target, output)
     
     feedback = '\n'.join([
-        f"{mode} model report ({'x'.join([str(dim) for dim in shape])}-{OPTIMISER}-{ACTIVATION}, {MODEL_CONFIG})\n", 
-        f"{score} test accuracy ({FEATURES})\n",
+        f"{mode} model report ({ESTIMATORS}-RF)\n", 
+        f"{score} test accuracy ({FEATURES} {FILTERS})\n",
         f"Classifier confusion matrix",
         f"{confusion}\n",
         f"Classifier report", 
-        f"{report}"])
+        f"{report}\n"])
     print(feedback)
 
-    return classifier, feedback
-
-def save_classifier(classifier: MLPClassifier, feedback: str, mode: str):
-    name = f"models/40-{mode}_Pspl_{strftime("%m%d%H%M")}_{MODEL_CONFIG}_{'x'.join([str(dim) for dim in SHAPE])}_{OPTIMISER}-{ACTIVATION}"
+    return feedback, score
+    
+def save_classifier(feedback: str, score: float, mode: str):
+    name = f"models/{mode}/40-{mode}_{strftime("%m%d%H%M")}_{int(100*score)}"
     with open(f"{name}_report.txt", 'w') as f:
         f.write(feedback)
-    dump(classifier, f"{name}_model.gz", compress=('gzip', 9))
+    # dump(classifier, f"{name}_model.gz", compress=('gzip', 9))
 
 if __name__ == "__main__":
     file_info, key_info = load_file_keys(FEATURES)
@@ -143,7 +87,7 @@ if __name__ == "__main__":
     data = load_handwriting(file_info)
     
     print(f"Training stress model")
-    stress_model = train_classifier(data, mode='stress', shape=SHAPE, N=ATTEMPTS)
+    stress_model = train_forest_classifier(data, mode='stress', N=ATTEMPTS)
     save_classifier(*stress_model, 'stress')
 
     print("Training fatigue model")

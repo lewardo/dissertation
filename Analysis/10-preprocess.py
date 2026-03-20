@@ -75,8 +75,8 @@ if __name__ == "__main__":
         # print(data[key].shape, calibrated.shape, filtered.shape, trimmed.shape)
 
         print(f"Saving file {count:03}/{len(data)}", end='\r')
-        save_sequence(f"10-Calibrated-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence(f"10-Calibrated-{CONFIG}", key, calibrated, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
         save_sequence(f"10-Filtered-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
-        save_sequence(f"10-Trimmed-{CONFIG}", key, filtered, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
+        save_sequence(f"10-Trimmed-{CONFIG}", key, trimmed, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z"])
 
     print(f"Finished processing {count} files.")

@@ -1,0 +1,20 @@
+stress model report (32x16-adam-relu)
+
+0.6875 test accuracy (Features/30-Extracted-A1-0 all24)
+
+Classifier confusion matrix
+[[80.  0.  0.]
+ [ 0. 57. 23.]
+ [ 0. 52. 28.]]
+
+Classifier report
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      80.0
+           1       0.52      0.71      0.60      80.0
+           2       0.55      0.35      0.43      80.0
+
+    accuracy                           0.69     240.0
+   macro avg       0.69      0.69      0.68     240.0
+weighted avg       0.69      0.69      0.68     240.0
+

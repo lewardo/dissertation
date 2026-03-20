@@ -12,15 +12,20 @@ CONFIG = 0
 # Pipeline 1
 # Series, acceleration power (pythag), gyroscope energy (sum of sq)
 
+# Pipeline 2
+# Series, acceleration jerks, acceleration power, gyroscope energy
+
 def augment_sequence(sequence: np.array) -> np.array:
     accel, gyro = sequence[:, 1:4], sequence[:, 4:7]
     
+    accel_jerks = np.diff(accel, axis=0, prepend=accel[0])
     accel_power = np.sqrt(np.sum(accel ** 2, axis=1))
     gyro_energy = np.sum(gyro ** 2, axis=1)
 
     # difference for correlation measures
     return np.column_stack([
         sequence, 
+        accel_jerks,
         accel_power, 
         gyro_energy
     ])
