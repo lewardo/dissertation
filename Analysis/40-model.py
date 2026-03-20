@@ -6,38 +6,47 @@ from time import strftime
 
 # from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, GroupKFold
+from sklearn.model_selection import GroupKFold
 from sklearn.metrics import confusion_matrix, classification_report, f1_score
 
 from joblib import dump
 
 from util.loader import load_file_keys, load_handwriting
 
-FEATURES = "Features/30-Extracted-A1-1" # simplest features
+FEATURES = "Features/30-Extracted-A2-1" # simplest features
 FILTERS = "all24"
 
 ESTIMATORS = 200
 
 # Normalise test scores to range [0,1]
 def get_key_target(key: tuple[int], mode: int) -> list[int]:
-    assert(mode in ['stress', 'fatigue'], "invalid mode")
+    assert mode in ['stress', 'fatigue']
+
+    pss = key[3] # / 40
+    rest = key[4] # / 52
     if mode == 'stress':
-        pss = key[3] # / 40
-        return [pss < 14, 14 <= pss <= 26, pss > 26]
+        if pss < 14:
+            return 0
+        if pss < 27:
+            return 1
     if mode == 'fatigue':
-        rest = key[4] # / 52
-        return [rest < 21, 21 <= rest <= 35, rest > 35]
+        if rest < 21:
+            return 0
+        if rest < 36:
+            return 1
+    return 2
 
 def train_forest_classifier(data: dict, mode: str, N: int):
-    confusion, report = "", ""
-    best, scores = -1, []
+    scores = []
 
     participants = np.array([key[0] for key in data.keys()])
-
     data_samples = np.array([value.reshape(-1) for value in data.values()])
     data_targets = np.array([get_key_target(key, mode) for key in data.keys()])
 
     group_fold = GroupKFold(n_splits=6)
+
+    all_targets = []
+    all_outputs = []
 
     for train_index, test_index in group_fold.split(data_samples, data_targets, groups=participants):
         train_data, test_data = data_samples[train_index], data_samples[test_index]
@@ -45,37 +54,40 @@ def train_forest_classifier(data: dict, mode: str, N: int):
 
         classifier = RandomForestClassifier(
             n_estimators=N, 
-            class_weight='balanced'
-            # random_state=42
+            class_weight='balanced',
+            random_state=69
         ).fit(
             X=train_data,
             y=train_target
         )
         
-        output = classifier.predict(test_data).argmax(axis=1)
-        target = test_target.argmax(axis=1)
-
-        
-        score = f1_score(target, output, average='macro')
+        output = classifier.predict(test_data)     
+        score = f1_score(test_target, output, average='macro', zero_division=0.0)
         scores.append(score)
-        if score > best:
-            best = score
-            confusion = confusion_matrix(target, output)
-            report = classification_report(target, output)
-    
-    feedback = '\n'.join([
-        f"{mode} model report ({ESTIMATORS}-RF)\n", 
-        f"{score} test accuracy ({FEATURES} {FILTERS})\n",
-        f"Classifier confusion matrix",
-        f"{confusion}\n",
-        f"Classifier report", 
-        f"{report}\n"])
-    print(feedback)
 
-    return feedback, score
+        all_targets.extend(test_target)
+        all_outputs.extend(output)
+    
+    mean_score = np.mean(scores)
+    global_confusion = confusion_matrix(all_targets, all_outputs)
+    global_report = classification_report(all_targets, all_outputs, zero_division=0.0)
+
+    feedback = '\n'.join([
+        f"--- {mode.upper()} MODEL REPORT ({ESTIMATORS}-RF) ---", 
+        f"Average CV F1-Score: {mean_score:.4f}",
+        f"Best Single Fold F1: {np.max(scores):.4f}",
+        f"Worst Single Fold F1: {np.min(scores):.4f}\n",
+        f"Global Confusion Matrix (Across all 6 folds):",
+        f"{global_confusion}\n",
+        f"Global Classification Report:", 
+        f"{global_report}\n"
+    ])
+
+    print(feedback)
+    return feedback, mean_score
     
 def save_classifier(feedback: str, score: float, mode: str):
-    name = f"models/{mode}/40-{mode}_{strftime("%m%d%H%M")}_{int(100*score)}"
+    name = f"models/rf/{mode}/40-{mode}_{strftime("%m%d%H%M")}_{int(100*score)}"
     with open(f"{name}_report.txt", 'w') as f:
         f.write(feedback)
     # dump(classifier, f"{name}_model.gz", compress=('gzip', 9))
@@ -87,9 +99,9 @@ if __name__ == "__main__":
     data = load_handwriting(file_info)
     
     print(f"Training stress model")
-    stress_model = train_forest_classifier(data, mode='stress', N=ATTEMPTS)
+    stress_model = train_forest_classifier(data, mode='stress', N=ESTIMATORS)
     save_classifier(*stress_model, 'stress')
 
     print("Training fatigue model")
-    fatigue_model = train_classifier(data, mode='fatigue', shape=SHAPE, N=ATTEMPTS)
+    fatigue_model = train_forest_classifier(data, mode='fatigue', N=ESTIMATORS)
     save_classifier(*fatigue_model, 'fatigue')

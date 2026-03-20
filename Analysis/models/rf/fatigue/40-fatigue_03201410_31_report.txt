@@ -1,0 +1,18 @@
+fatigue model report (1000-RF)
+
+0.3103448275862069 test accuracy (Features/30-Extracted-A2-1 all24)
+
+Classifier confusion matrix
+[[21 39]
+ [ 7 13]]
+
+Classifier report
+              precision    recall  f1-score   support
+
+           0       0.75      0.35      0.48        60
+           1       0.25      0.65      0.36        20
+
+    accuracy                           0.42        80
+   macro avg       0.50      0.50      0.42        80
+weighted avg       0.62      0.42      0.45        80
+
