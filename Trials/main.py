@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Participant 9, 12 left handed
+# Participant 9, 12, 27 left handed
 # Participant 21 has fucked grip
 
 import sys

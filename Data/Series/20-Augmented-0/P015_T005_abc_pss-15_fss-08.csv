@@ -1,4 +1,4 @@
-pressure,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z,accel_jx,accel_jy,accel_jz,accel_power,gyro_energy
+pressure,accel_x,accel_y,accel_z,gyro_x,gyro_y,gyro_z
 0.790998,-1.548083,1.846654,-1.266117,-0.423978,-0.529341,0.417239
 0.792594,-0.346643,0.825346,0.285927,-0.388368,0.177797,0.502594
 0.778330,-0.324004,0.720576,-2.141071,-0.384986,0.615879,0.548769
