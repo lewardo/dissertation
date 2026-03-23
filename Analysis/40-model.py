@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import numpy as np
+from scipy import stats
 
 from time import strftime
 
@@ -86,6 +87,65 @@ def train_forest_classifier(data: dict, mode: str, N: int):
     print(feedback)
     return feedback, mean_score
     
+def train_forest_classifier_voting(data: dict, mode: str, N: int):
+    X_windows, y_windows, groups_windows, trial_keys = [], [], [], []
+    
+    for key, trial_windows in data.items():
+        target = get_key_target(key, mode)
+        participant = key[0]
+        
+        for window in trial_windows:
+            X_windows.append(window)
+            y_windows.append(target)
+            groups_windows.append(participant)
+            trial_keys.append(key)
+            
+    X_windows = np.array(X_windows)
+    y_windows = np.array(y_windows)
+    groups_windows = np.array(groups_windows)
+    
+    group_fold = GroupKFold(n_splits=6)
+    
+    trial_targets, trial_predictions = [], []
+    for train_index, test_index in group_fold.split(X_windows, y_windows, groups=groups_windows):
+        X_train, y_train = X_windows[train_index], y_windows[train_index]
+        X_test, y_test = X_windows[test_index], y_windows[test_index]
+        
+        test_keys = [trial_keys[i] for i in test_index]
+
+        classifier = RandomForestClassifier(
+            n_estimators=N, 
+            class_weight='balanced_subsample',
+            max_features='log2',
+            random_state=42
+        ).fit(X_train, y_train)
+        
+        window_predictions = classifier.predict(X_test)
+        unique_test_keys = list(set(test_keys))
+        
+        for target_key in unique_test_keys:
+            trial_preds = [pred for pred, k in zip(window_predictions, test_keys) if k == target_key]
+            majority_vote = stats.mode(trial_preds, keepdims=True)[0][0]
+            
+            trial_targets.append(get_key_target(target_key, mode))
+            trial_predictions.append(majority_vote)
+            
+    mean_score = f1_score(trial_targets, trial_predictions, average='macro', zero_division=0.0)
+    global_confusion = confusion_matrix(trial_targets, trial_predictions)
+    global_report = classification_report(trial_targets, trial_predictions, zero_division=0.0)
+    
+    feedback = '\n'.join([
+        f"--- {mode.upper()} MODEL REPORT ({N}-RF with Majority Voting) ---", 
+        f"Trial-Level F1-Score: {mean_score:.4f}",
+        f"Global Confusion Matrix:",
+        f"{global_confusion}\n",
+        f"Global Classification Report:", 
+        f"{global_report}\n"
+    ])
+    
+    print(feedback)
+    return feedback, mean_score
+
 def save_classifier(feedback: str, score: float, mode: str):
     name = f"models/rf/{mode}/40-{mode}_{strftime("%m%d%H%M")}_{int(100*score)}"
     with open(f"{name}_report.txt", 'w') as f:
@@ -99,9 +159,9 @@ if __name__ == "__main__":
     data = load_handwriting(file_info)
     
     print(f"Training stress model")
-    stress_model = train_forest_classifier(data, mode='stress', N=ESTIMATORS)
+    stress_model = train_forest_classifier_voting(data, mode='stress', N=ESTIMATORS)
     save_classifier(*stress_model, 'stress')
 
     print("Training fatigue model")
-    fatigue_model = train_forest_classifier(data, mode='fatigue', N=ESTIMATORS)
+    fatigue_model = train_forest_classifier_voting(data, mode='fatigue', N=ESTIMATORS)
     save_classifier(*fatigue_model, 'fatigue')
