@@ -31,7 +31,7 @@ def load_file_keys(path: str) -> dict:
             file_names.append(os.path.join(directory, file))
     
     file_info = (np.array(file_names), np.array(file_keys))
-    file_keys = tuple(np.array(file_keys).T)
+    file_keys = tuple(np.array(file_keys).transpose())
 
     print(f"Finished loading {len(file_names)} keys.")
     
@@ -64,7 +64,7 @@ def load_handwriting(file_info: tuple, filter: np.array = None) -> np.array:
     print(f"Finished loading {count} files.")
     return filtered_data
 
-def save_sequence(path: str, file_key: tuple, sequence: np.array, header: list[str]) -> str:
+def save_sequence(path: str, file_key: tuple, sequence: np.array, header: list[str], rev: int = None) -> str:
     participant, trial, descriptor, pss, rest = file_key
 
     filename = f"P{participant:03d}_T{trial:03d}_{["abc", "dog", "rick", "xmas"][descriptor]}_pss-{pss:02d}_fss-{rest:02d}.csv"

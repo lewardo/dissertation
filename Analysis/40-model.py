@@ -1,142 +1,106 @@
 #! /usr/bin/env python
 
 import numpy as np
-from scipy import stats
 
 from time import strftime
 
-# from sklearn.neural_network import MLPClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GroupKFold
-from sklearn.metrics import confusion_matrix, classification_report, f1_score
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 
-from joblib import dump
+from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.metrics import confusion_matrix, classification_report, f1_score
 
 from util.loader import load_file_keys, load_handwriting
 
-FEATURES = "Features/30-Extracted-A2-1" # simplest features
-FILTERS = "all24"
+# feature parameters
+FEATURES = "Features/30-Extracted-A2-2W"
+FILTERS = "all24" # []
 
-ESTIMATORS = 200
+# model parameters
+MODEL = 'rf'
 
-# Normalise test scores to range [0,1]
-def get_key_target(key: tuple[int], mode: int) -> list[int]:
-    assert mode in ['stress', 'fatigue']
+# mlp parameters
+LAYERS = [64, 64]
+ACTIVATION = 'relu'
+SOLVER = 'adam'
 
-    pss = key[3] # / 40
-    rest = key[4] # / 52
+# rf parameters
+ESTIMATORS = 500
+
+def classifier_instance():
+    if MODEL == 'mlp':
+        return MLPClassifier(
+            hidden_layer_sizes=LAYERS,
+            activation=ACTIVATION,
+            solver=SOLVER,
+            learning_rate='adaptive',
+            max_iter=int(1e4),
+            random_state=69
+        )
+    if MODEL == 'rf':
+        return RandomForestClassifier(
+            n_estimators=ESTIMATORS, 
+            class_weight='balanced_subsample',
+            max_features='log2',
+            random_state=69
+        )
+    # if MODEL == 'xgb':
+    #     return 
+    
+def classifier_description():
+    if MODEL == 'mlp':
+        dims = 'x'.join([str(dim) for dim in LAYERS])
+        return f"mlp-{dims}-{ACTIVATION} ({SOLVER})"
+    if MODEL == 'rf':
+        return f"rf-{ESTIMATORS}"
+
+# Classify test scores
+def get_key_target(key: tuple[int], mode: str) -> int:
+    # PSS-10 boundaries
     if mode == 'stress':
-        if pss < 14:
+        if key[3] < 14:
             return 0
-        if pss < 27:
+        if key[3] < 27:
             return 1
+    
+    # REST boundaries
     if mode == 'fatigue':
-        if rest < 21:
+        if key[4] < 21:
             return 0
-        if rest < 36:
+        if key[4] < 36:
             return 1
+    
+    # Otherwise
     return 2
+    
+def train_forest_classifier(data: dict, mode: str):
+    data_participants = np.array([key[0] for key in data.keys()])
 
-def train_forest_classifier(data: dict, mode: str, N: int):
-    scores = []
-
-    participants = np.array([key[0] for key in data.keys()])
     data_samples = np.array([value.reshape(-1) for value in data.values()])
     data_targets = np.array([get_key_target(key, mode) for key in data.keys()])
-
-    group_fold = GroupKFold(n_splits=6)
-
-    all_targets = []
-    all_outputs = []
-
-    for train_index, test_index in group_fold.split(data_samples, data_targets, groups=participants):
+    
+    group_fold = StratifiedGroupKFold(n_splits=6)
+    
+    test_targets, test_predictions = np.array([]), np.array([])
+    for train_index, test_index in group_fold.split(data_samples, data_targets, groups=data_participants):
         train_data, test_data = data_samples[train_index], data_samples[test_index]
         train_target, test_target = data_targets[train_index], data_targets[test_index]
 
-        classifier = RandomForestClassifier(
-            n_estimators=N, 
-            class_weight='balanced',
-            random_state=69
-        ).fit(
-            X=train_data,
-            y=train_target
-        )
+        classifier = classifier_instance().fit(train_data, train_target)
+        prediction = classifier.predict(test_data)
         
-        output = classifier.predict(test_data)     
-        score = f1_score(test_target, output, average='macro', zero_division=0.0)
-        scores.append(score)
-
-        all_targets.extend(test_target)
-        all_outputs.extend(output)
+        test_targets = np.append(test_targets, test_target)
+        test_predictions = np.append(test_predictions, prediction)
     
-    mean_score = np.mean(scores)
-    global_confusion = confusion_matrix(all_targets, all_outputs)
-    global_report = classification_report(all_targets, all_outputs, zero_division=0.0)
-
-    feedback = '\n'.join([
-        f"--- {mode.upper()} MODEL REPORT ({ESTIMATORS}-RF) ---", 
-        f"Average CV F1-Score: {mean_score:.4f}",
-        f"Best Single Fold F1: {np.max(scores):.4f}",
-        f"Worst Single Fold F1: {np.min(scores):.4f}\n",
-        f"Global Confusion Matrix (Across all 6 folds):",
-        f"{global_confusion}\n",
-        f"Global Classification Report:", 
-        f"{global_report}\n"
-    ])
-
-    print(feedback)
-    return feedback, mean_score
-    
-def train_forest_classifier_voting(data: dict, mode: str, N: int):
-    X_windows, y_windows, groups_windows, trial_keys = [], [], [], []
-    
-    for key, trial_windows in data.items():
-        target = get_key_target(key, mode)
-        participant = key[0]
-        
-        for window in trial_windows:
-            X_windows.append(window)
-            y_windows.append(target)
-            groups_windows.append(participant)
-            trial_keys.append(key)
-            
-    X_windows = np.array(X_windows)
-    y_windows = np.array(y_windows)
-    groups_windows = np.array(groups_windows)
-    
-    group_fold = GroupKFold(n_splits=6)
-    
-    trial_targets, trial_predictions = [], []
-    for train_index, test_index in group_fold.split(X_windows, y_windows, groups=groups_windows):
-        X_train, y_train = X_windows[train_index], y_windows[train_index]
-        X_test, y_test = X_windows[test_index], y_windows[test_index]
-        
-        test_keys = [trial_keys[i] for i in test_index]
-
-        classifier = RandomForestClassifier(
-            n_estimators=N, 
-            class_weight='balanced_subsample',
-            max_features='log2',
-            random_state=42
-        ).fit(X_train, y_train)
-        
-        window_predictions = classifier.predict(X_test)
-        unique_test_keys = list(set(test_keys))
-        
-        for target_key in unique_test_keys:
-            trial_preds = [pred for pred, k in zip(window_predictions, test_keys) if k == target_key]
-            majority_vote = stats.mode(trial_preds, keepdims=True)[0][0]
-            
-            trial_targets.append(get_key_target(target_key, mode))
-            trial_predictions.append(majority_vote)
-            
-    mean_score = f1_score(trial_targets, trial_predictions, average='macro', zero_division=0.0)
-    global_confusion = confusion_matrix(trial_targets, trial_predictions)
-    global_report = classification_report(trial_targets, trial_predictions, zero_division=0.0)
+    print(test_targets.shape, test_predictions.shape)
+    mean_score = f1_score(test_targets, test_predictions, average='macro', zero_division=0.0)
+    global_confusion = confusion_matrix(test_targets, test_predictions)
+    global_report = classification_report(test_targets, test_predictions, zero_division=0.0)
     
     feedback = '\n'.join([
-        f"--- {mode.upper()} MODEL REPORT ({N}-RF with Majority Voting) ---", 
-        f"Trial-Level F1-Score: {mean_score:.4f}",
+        f"--- {mode.upper()} MODEL REPORT ({classifier_description()}) ---", 
+        f"Trained on {FEATURES} {FILTERS}, split into 250/100 chunks",
+        f"F1-Score: {mean_score:.4f}\n",
         f"Global Confusion Matrix:",
         f"{global_confusion}\n",
         f"Global Classification Report:", 
@@ -147,7 +111,7 @@ def train_forest_classifier_voting(data: dict, mode: str, N: int):
     return feedback, mean_score
 
 def save_classifier(feedback: str, score: float, mode: str):
-    name = f"models/rf/{mode}/40-{mode}_{strftime("%m%d%H%M")}_{int(100*score)}"
+    name = f"models/40-{mode}-{MODEL}_{strftime("%m%d%H%M")}_{int(100 * score + 0.5)}"
     with open(f"{name}_report.txt", 'w') as f:
         f.write(feedback)
     # dump(classifier, f"{name}_model.gz", compress=('gzip', 9))
@@ -159,9 +123,9 @@ if __name__ == "__main__":
     data = load_handwriting(file_info)
     
     print(f"Training stress model")
-    stress_model = train_forest_classifier_voting(data, mode='stress', N=ESTIMATORS)
+    stress_model = train_forest_classifier(data, mode='stress')
     save_classifier(*stress_model, 'stress')
 
     print("Training fatigue model")
-    fatigue_model = train_forest_classifier_voting(data, mode='fatigue', N=ESTIMATORS)
+    fatigue_model = train_forest_classifier(data, mode='fatigue')
     save_classifier(*fatigue_model, 'fatigue')

@@ -1,0 +1,18 @@
+--- FATIGUE MODEL REPORT (mlp-64x64-relu-adam) ---
+Trial-Level F1-Score: 0.1813
+Global Confusion Matrix:
+[[ 96 124  20]
+ [152  31  17]
+ [ 18  22   0]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.36      0.40      0.38       240
+           1       0.18      0.15      0.16       200
+           2       0.00      0.00      0.00        40
+
+    accuracy                           0.26       480
+   macro avg       0.18      0.19      0.18       480
+weighted avg       0.25      0.26      0.26       480
+

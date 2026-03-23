@@ -16,9 +16,9 @@ CONFIG = 2
 # Series, acceleration jerks, acceleration power, gyroscope energy
 
 def augment_sequence(sequence: np.array) -> np.array:
-    accel, gyro = sequence[:, 1:4], sequence[:, 4:7]
+    accel, gyro = sequence[..., 1:4], sequence[..., 4:7]
     
-    accel_jerks = np.diff(accel, axis=0, prepend=accel[0])
+    accel_jerks = np.diff(accel, axis=0, prepend=[accel[0]])
     accel_power = np.sqrt(np.sum(accel ** 2, axis=1))
     gyro_energy = np.sum(gyro ** 2, axis=1)
 
@@ -42,8 +42,8 @@ if __name__ == "__main__":
     for key in data:
         count += 1
 
-        # augmented = augment_sequence(data[key])
-        augmented = data[key]
+        augmented = augment_sequence(data[key])
+        # augmented = data[key]
 
         print(f"Saving file {count:03}/{len(data)}", end='\r')
         save_sequence(f"Series/20-Augmented-{CONFIG}", key, augmented, ["pressure", "accel_x", "accel_y", "accel_z", "gyro_x", "gyro_y", "gyro_z", 

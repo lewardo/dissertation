@@ -1,0 +1,20 @@
+--- STRESS MODEL REPORT (rf-500) ---
+Trained on Features/30-Extracted-A2-2W all24, split into 250/100 chunks
+F1-Score: 0.2949
+
+Global Confusion Matrix:
+[[  29  461    0]
+ [  36 2451  106]
+ [  11  814    3]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.38      0.06      0.10       490
+         1.0       0.66      0.95      0.78      2593
+         2.0       0.03      0.00      0.01       828
+
+    accuracy                           0.63      3911
+   macro avg       0.36      0.34      0.29      3911
+weighted avg       0.49      0.63      0.53      3911
+

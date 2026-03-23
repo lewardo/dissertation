@@ -6,8 +6,11 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 from util.loader import load_file_keys, load_handwriting, save_sequence
 
-CONFIG = 1
+CONFIG = 2
 FEATURES = 2
+
+WINDOW = 192
+HOP = 96
 
 # Pipeline 0:
 # SIMPLE
@@ -20,6 +23,11 @@ FEATURES = 2
 # Temporal: mean, std, min, max, power, mcr
 # Spectral: mean, std, power (per band)
 
+# Pipeline 2:
+# Temporal like 1
+# Spectral like 1 (only calibrated 6dof axes)
+# Chunked into 200 sample segments
+
 def extract_spectra(sequence: np.array) -> np.array:
     frames = sliding_window_view(sequence, window_shape=64, axis=0)[::32]
     dct_mag = dct(frames, type=2, axis=-1, norm='ortho')[..., :38] ** 2
@@ -29,8 +37,6 @@ def extract_spectra(sequence: np.array) -> np.array:
 
 # Take a (t, N) series of vectors and calculate feature-wise statistical measures
 def extract_features(sequence: np.array) -> np.array:
-    # sequence length
-    # Each of seven axes - min, max, avg, stdev, mcr, avg power
     spectrum_bands = extract_spectra(sequence)
 
     seq_mean = np.mean(sequence, axis=0)
@@ -45,6 +51,7 @@ def extract_features(sequence: np.array) -> np.array:
     seq_stats = [seq_mean, seq_std, seq_pow, seq_mcr]
     spec_stats = [spec_means, spec_stds, spec_pows]
 
+    # print(np.array(seq_stats).shape, np.hstack([*seq_stats]).shape)
     return np.hstack([
         *seq_stats, 
         *spec_stats
@@ -58,12 +65,30 @@ if __name__ == "__main__":
 
     print("Processing files...")
 
-    count = 0
+    file_count = 0
     for key in data:
-        count += 1
+        file_count += 1
+        print(f"Extracting features from file {file_count:03}/{len(data)}", end='\r')
 
-        features = extract_features(data[key])
-        print(f"Extracting features from file {count:03}/{len(data)}", end='\r')
-        save_sequence(f"Features/30-Extracted-A{FEATURES}-{CONFIG}", key, features.reshape((-1, 1)), ["features"])
+        pid, tno, desc, pss, rest = key
+        
+        windows = sliding_window_view(data[key], 
+            window_shape=np.min([WINDOW, data[key].shape[0]]), 
+            axis=0
+        )[::HOP, ...]
 
-    print(f"Finished processing {count} files.")
+        window_count = 0
+        for window in windows:
+            window_key = (pid, 100 * tno + window_count, desc, pss, rest)
+            window_count += 1
+
+            window_features = extract_features(window.transpose())
+
+            save_sequence(
+                path=f"Features/30-Extracted-A{FEATURES}-{CONFIG}W", 
+                file_key=window_key, 
+                sequence=window_features.reshape((-1, 1)), 
+                header=["features"]
+            )
+
+    print(f"Finished processing {file_count} files.")

@@ -1,0 +1,20 @@
+--- FATIGUE MODEL REPORT (mlp-64x64-relu (adam)) ---
+Trained on Features/30-Extracted-A2-2W all24, split into 200/100 chunks
+F1-Score: 0.2203
+
+Global Confusion Matrix:
+[[ 888 1199   68]
+ [1167  410   82]
+ [ 133  207    4]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.41      0.41      0.41      2155
+         1.0       0.23      0.25      0.24      1659
+         2.0       0.03      0.01      0.02       344
+
+    accuracy                           0.31      4158
+   macro avg       0.22      0.22      0.22      4158
+weighted avg       0.30      0.31      0.31      4158
+
