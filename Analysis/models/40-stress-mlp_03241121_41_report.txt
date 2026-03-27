@@ -1,0 +1,20 @@
+--- STRESS MODEL REPORT (mlp-64x32-logistic (adam)) ---
+Trained on Features/30-Extracted-A2-2W all26
+F1-Score: 0.4077
+
+Global Confusion Matrix:
+[[ 245  418  282]
+ [ 164 2354  376]
+ [  50  756  120]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.53      0.26      0.35       945
+         1.0       0.67      0.81      0.73      2894
+         2.0       0.15      0.13      0.14       926
+
+    accuracy                           0.57      4765
+   macro avg       0.45      0.40      0.41      4765
+weighted avg       0.54      0.57      0.54      4765
+

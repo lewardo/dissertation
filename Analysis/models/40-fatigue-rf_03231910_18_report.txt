@@ -1,0 +1,20 @@
+--- FATIGUE MODEL REPORT (rf-500) ---
+Trained on Features/30-Extracted-A2-2W all24, split into 250/100 chunks
+F1-Score: 0.1757
+
+Global Confusion Matrix:
+[[1028 1219  229]
+ [1433  219   80]
+ [ 526   25    6]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.34      0.42      0.38      2476
+         1.0       0.15      0.13      0.14      1732
+         2.0       0.02      0.01      0.01       557
+
+    accuracy                           0.26      4765
+   macro avg       0.17      0.18      0.18      4765
+weighted avg       0.24      0.26      0.25      4765
+

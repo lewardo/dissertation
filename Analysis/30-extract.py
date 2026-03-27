@@ -52,19 +52,12 @@ def extract_features(sequence: np.array) -> np.array:
     spec_stats = [spec_means, spec_stds, spec_pows]
 
     # print(np.array(seq_stats).shape, np.hstack([*seq_stats]).shape)
-    return np.hstack([
-        *seq_stats, 
-        *spec_stats
-    ])
+    if CONFIG == 0:
+        return np.hstack([*seq_stats])
+    else:
+        return np.hstack([*seq_stats, *spec_stats])
 
-if __name__ == "__main__":
-    file_info, key_info = load_file_keys(f"Series/20-Augmented-{FEATURES}")
-
-    participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
-    data = load_handwriting(file_info) # ,[])
-
-    print("Processing files...")
-
+def process_files_windowed(data: dict):
     file_count = 0
     for key in data:
         file_count += 1
@@ -92,3 +85,33 @@ if __name__ == "__main__":
             )
 
     print(f"Finished processing {file_count} files.")
+
+def process_files(data: dict):
+    file_count = 0
+    for key in data:
+        file_count += 1
+        print(f"Extracting features from file {file_count:03}/{len(data)}", end='\r')
+
+        features = extract_features(data[key])
+
+        save_sequence(
+            path=f"Features/30-Extracted-A{FEATURES}-{CONFIG}", 
+            file_key=key, 
+            sequence=features.reshape((-1, 1)), 
+            header=["features"]
+        )
+
+    print(f"Finished processing {file_count} files.")
+
+if __name__ == "__main__":
+    file_info, key_info = load_file_keys(f"Series/20-Augmented-{FEATURES}")
+
+    participant_id, trial_no, trial_desc, pss_score, rest_score = key_info
+    data = load_handwriting(file_info) # ,[])
+
+    print("Processing files...")
+    if CONFIG < 2:
+        process_files(data)
+    else:
+        process_files_windowed(data)
+

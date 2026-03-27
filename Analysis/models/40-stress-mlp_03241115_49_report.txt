@@ -1,0 +1,20 @@
+--- STRESS MODEL REPORT (mlp-64x64-relu (adam)) ---
+Trained on Features/30-Extracted-A0-0 all26
+F1-Score: 0.4861
+
+Global Confusion Matrix:
+[[ 52  27   1]
+ [ 11 269  60]
+ [  0 100   0]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.83      0.65      0.73        80
+         1.0       0.68      0.79      0.73       340
+         2.0       0.00      0.00      0.00       100
+
+    accuracy                           0.62       520
+   macro avg       0.50      0.48      0.49       520
+weighted avg       0.57      0.62      0.59       520
+

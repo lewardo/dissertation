@@ -2,6 +2,7 @@
 
 # Participant 9, 12, 27 left handed
 # Participant 21 has fucked grip
+# Participant 29 facing east
 
 import sys
 

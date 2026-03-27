@@ -17,6 +17,8 @@ CONFIG = 0
 
 # Use the orientation quaternion to project the raw accelerometer and gyroscope axes into the page space
 def calibrate_sequence(sequence: np.array) -> np.array:
+    return sequence[:, 1:8]
+
     # Extract the parts of the sequence
     rotate = quat.as_quat_array(sequence[:, 8:])
     accel = quat.from_vector_part(sequence[:, 2:5])

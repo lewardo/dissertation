@@ -14,17 +14,17 @@ from util.loader import load_file_keys, load_handwriting
 
 # feature parameters
 FEATURES = "Features/30-Extracted-A2-2W"
-FILTERS = "all24" # []
+FILTERS = "all26" # []
 
 # model parameters
-MODEL = 'rf'
+MODEL = 'xgb'
 
 # mlp parameters
-LAYERS = [64, 64]
-ACTIVATION = 'relu'
+LAYERS = [128]
+ACTIVATION = 'logistic'
 SOLVER = 'adam'
 
-# rf parameters
+# forest parameters
 ESTIMATORS = 500
 
 def classifier_instance():
@@ -34,7 +34,7 @@ def classifier_instance():
             activation=ACTIVATION,
             solver=SOLVER,
             learning_rate='adaptive',
-            max_iter=int(1e4),
+            max_iter=int(1e5),
             random_state=69
         )
     if MODEL == 'rf':
@@ -44,8 +44,10 @@ def classifier_instance():
             max_features='log2',
             random_state=69
         )
-    # if MODEL == 'xgb':
-    #     return 
+    if MODEL == 'xgb':
+        return GradientBoostingClassifier(
+            n_estimators=ESTIMATORS
+        )
     
 def classifier_description():
     if MODEL == 'mlp':
@@ -72,34 +74,44 @@ def get_key_target(key: tuple[int], mode: str) -> int:
     
     # Otherwise
     return 2
-    
-def train_forest_classifier(data: dict, mode: str):
+
+def get_key_trial(key: tuple[int]) -> tuple[int]:
+    pid, tno, desc, pss, rest = key
+    return (pid, tno // 100, desc, pss, rest) if tno >= 100 else key
+
+def train_classifier(data: dict, mode: str):
     data_participants = np.array([key[0] for key in data.keys()])
 
     data_samples = np.array([value.reshape(-1) for value in data.values()])
     data_targets = np.array([get_key_target(key, mode) for key in data.keys()])
+    data_trials = np.array([get_key_trial(key) for key in data.keys()])
     
-    group_fold = StratifiedGroupKFold(n_splits=6)
+    group_fold = StratifiedGroupKFold(n_splits=4, shuffle=True, random_state=69)
     
-    test_targets, test_predictions = np.array([]), np.array([])
+    global_targets, global_predictions = np.array([]), np.array([])
     for train_index, test_index in group_fold.split(data_samples, data_targets, groups=data_participants):
         train_data, test_data = data_samples[train_index], data_samples[test_index]
-        train_target, test_target = data_targets[train_index], data_targets[test_index]
+        train_targets, test_targets = data_targets[train_index], data_targets[test_index]
 
-        classifier = classifier_instance().fit(train_data, train_target)
-        prediction = classifier.predict(test_data)
-        
-        test_targets = np.append(test_targets, test_target)
-        test_predictions = np.append(test_predictions, prediction)
+        classifier = classifier_instance().fit(train_data, train_targets)
+        predictions = classifier.predict_proba(test_data)
+
+        for trial in np.unique(data_trials[test_index], axis=0):
+            trial_indices = (data_trials[test_index] == trial).all(axis=1)
+
+            trial_prediction = np.argmax(np.sum(predictions[trial_indices], axis=0))
+            trial_target = test_targets[trial_indices][0]
+
+            global_targets = np.append(global_targets, trial_target)
+            global_predictions = np.append(global_predictions, trial_prediction)
     
-    print(test_targets.shape, test_predictions.shape)
-    mean_score = f1_score(test_targets, test_predictions, average='macro', zero_division=0.0)
-    global_confusion = confusion_matrix(test_targets, test_predictions)
-    global_report = classification_report(test_targets, test_predictions, zero_division=0.0)
+    mean_score = f1_score(global_targets, global_predictions, average='macro', zero_division=0.0)
+    global_confusion = confusion_matrix(global_targets, global_predictions)
+    global_report = classification_report(global_targets, global_predictions, zero_division=0.0)
     
     feedback = '\n'.join([
         f"--- {mode.upper()} MODEL REPORT ({classifier_description()}) ---", 
-        f"Trained on {FEATURES} {FILTERS}, split into 250/100 chunks",
+        f"Trained on {FEATURES} {FILTERS} split into 192/96 chunks",
         f"F1-Score: {mean_score:.4f}\n",
         f"Global Confusion Matrix:",
         f"{global_confusion}\n",
@@ -123,9 +135,9 @@ if __name__ == "__main__":
     data = load_handwriting(file_info)
     
     print(f"Training stress model")
-    stress_model = train_forest_classifier(data, mode='stress')
+    stress_model = train_classifier(data, mode='stress')
     save_classifier(*stress_model, 'stress')
 
     print("Training fatigue model")
-    fatigue_model = train_forest_classifier(data, mode='fatigue')
+    fatigue_model = train_classifier(data, mode='fatigue')
     save_classifier(*fatigue_model, 'fatigue')

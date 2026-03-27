@@ -1,0 +1,20 @@
+--- FATIGUE MODEL REPORT (mlp-128-logistic (adam)) ---
+Trained on Features/30-Extracted-A2-2W all26 split into 192/96 chunks
+F1-Score: 0.1796
+
+Global Confusion Matrix:
+[[117 140   3]
+ [171  28   1]
+ [ 52   8   0]]
+
+Global Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.34      0.45      0.39       260
+         1.0       0.16      0.14      0.15       200
+         2.0       0.00      0.00      0.00        60
+
+    accuracy                           0.28       520
+   macro avg       0.17      0.20      0.18       520
+weighted avg       0.23      0.28      0.25       520
+
