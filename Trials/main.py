@@ -6,9 +6,9 @@
 
 import sys
 
-from port import find_arduino_port
-from record import record_session
-from session import parse_arguments, generate_filename
+from util.port import find_arduino_port
+from util.record import record_session
+from util.session import parse_arguments, generate_filename
 
 if __name__ == "__main__":
     # Parse Command Line Arguments
