@@ -13,7 +13,7 @@ def parse_arguments():
     parser.add_argument("-m", "--augment-mags", type=bool, default=False, help="Augmentation magnitudes")
 
     parser.add_argument("-w", "--window-size", type=int, default=250, help="Window size")
-    # parser.add_argument("-", "--window-hop", type=int, default=125, help="Window hop")
+    parser.add_argument("-p", "--window-hop", type=int, default=125, help="Window hop")
 
     parser.add_argument("-a", "--affect", type=str, required=True, help="Mode, 'stress' or 'fatigue'")
     

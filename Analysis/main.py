@@ -8,11 +8,12 @@ from util.load import load_trial_keys, filter_trials
 from util.classes import get_key_class, get_key_participant
 
 from process.preprocess import calibrate_sequence, filter_sequence, trim_sequence
-from process.augment import augment_sequence
+from process.augment import augment_sequence, get_augmented_labels
 from process.window import window_sequence
 
 from model.extract import extract_features
-from model.model import model_series, print_report
+from model.model import model_series
+from model.report import generate_full_report, save_report_to_file
 
 if __name__ == "__main__":
     arguments = parse_arguments()
@@ -27,13 +28,13 @@ if __name__ == "__main__":
     for file_name, trial_key in zip(file_names, trial_keys):
         trial_series = np.loadtxt(file_name, delimiter=',', skiprows=1, dtype='float')
         
-        trial_series = calibrate_sequence(trial_series, calibrate=arguments.preprocess_calibrate)
-        trial_series = filter_sequence(trial_series, cutoff=arguments.preprocess_cutoff)
-        trial_series = trim_sequence(trial_series, trim=arguments.preprocess_trim)
+        trial_series = calibrate_sequence(trial_series, args=arguments)
+        trial_series = filter_sequence(trial_series, args=arguments)
+        trial_series = trim_sequence(trial_series, args=arguments)
         
-        trial_series = augment_sequence(trial_series, jerk=arguments.augment_jerk, mags=arguments.augment_mags)
+        trial_series = augment_sequence(trial_series, args=arguments)
         
-        trial_windows, window_keys = window_sequence(trial_series, trial_key, window=arguments.window_size)
+        trial_windows, window_keys = window_sequence(trial_series, trial_key, args=arguments)
         
         for window, window_key in zip(trial_windows, window_keys):
             N, T = window.shape
@@ -43,7 +44,7 @@ if __name__ == "__main__":
             trial_target = get_key_class(window_key, mode=arguments.affect)
             trial_targets[hash(window_key)] = trial_target
 
-            trial_frame = pd.DataFrame(window.transpose(), columns=['p', 'ax', 'ay', 'az', 'gx', 'gy', 'gz'])
+            trial_frame = pd.DataFrame(window.transpose(), columns=get_augmented_labels(arguments))
 
             trial_frame['id'] = hash(window_key)
             trial_frame['time'] = np.arange(T)
@@ -56,11 +57,12 @@ if __name__ == "__main__":
 
     print(trials_dataframe)
 
-    # print("Extracting relevant features")
-    # features, classes, groups = extract_features(trials_dataframe, trials_classes, trials_participants)
+    print("Extracting relevant features")
+    trials_features = extract_features(trials_dataframe, trials_classes)
     
     print("Modelling data and cross-validating")
-    cv_report = model_series(trials_dataframe, trials_classes, trials_participants)
+    model = model_series(trials_features, trials_classes, trials_participants)
 
-    print("Finalising report")
-    print_report(cv_report)
+    print("Generating report")
+    report = generate_full_report(*model)
+    save_report_to_file(arguments, *report)

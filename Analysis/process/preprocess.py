@@ -5,8 +5,8 @@ import quaternion as quat
 import scipy.signal as signal
 
 # Use the orientation quaternion to project the raw accelerometer and gyroscope axes into the page space
-def calibrate_sequence(sequence: np.array, calibrate: bool = 0) -> np.array:
-    if calibrate:
+def calibrate_sequence(sequence: np.array, args: dict) -> np.array:
+    if args.preprocess_calibrate:
         # Extract the parts of the sequence
         orient = quat.as_quat_array(sequence[..., 8:])
         accel = quat.from_vector_part(sequence[..., 2:5])
@@ -23,15 +23,15 @@ def calibrate_sequence(sequence: np.array, calibrate: bool = 0) -> np.array:
         return sequence[..., 1:8]
 
 # Low-pass a sequence using a parametrised butterworth filter
-def filter_sequence(sequence: np.array, cutoff: float = 15.0) -> np.array:
-    lowpass = signal.butter(N=5, Wn=cutoff, fs=50, btype="lowpass", output="sos")
+def filter_sequence(sequence: np.array, args: dict) -> np.array:
+    lowpass = signal.butter(N=5, Wn=args.preprocess_cutoff, fs=50, btype="lowpass", output="sos")
     return signal.sosfiltfilt(lowpass, sequence, axis=0)
 
 # Some sequences were started a bit early or ended a bit late, so have noise from the pen moving
 # Extract the middle of the sequence, find the spread of this middle bit, then cutoff the beginning
 # and end when the running average goes within the range
-def trim_sequence(sequence: np.array, trim: bool = False) -> np.array:
-    if not trim:
+def trim_sequence(sequence: np.array, args: dict) -> np.array:
+    if not args.preprocess_trim:
         return sequence
     
     low = len(sequence) // slice
