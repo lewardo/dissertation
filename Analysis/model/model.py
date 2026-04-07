@@ -13,7 +13,7 @@ def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
     folds = StratifiedGroupKFold(n_splits=4)
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
-        ('reducer', SelectKBest(f_classif, k=100)),
+        ('reducer', SelectKBest(f_classif, k=250)),
         ('selector', RFECV(
             estimator=RandomForestClassifier(n_estimators=100, n_jobs=-1),
             step=0.05
