@@ -3,7 +3,7 @@
 import pandas as pd
 
 from sklearn.model_selection import StratifiedGroupKFold, cross_validate
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFECV, SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -13,10 +13,15 @@ def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
     folds = StratifiedGroupKFold(n_splits=4)
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
-        ('selector', RFE(RandomForestClassifier(n_jobs=-1))),
+        ('reducer', SelectKBest(f_classif, k=100)),
+        ('selector', RFECV(
+            estimator=RandomForestClassifier(n_estimators=100, n_jobs=-1),
+            step=0.05
+        )),
         ('classifier', RandomForestClassifier(n_estimators=1000, n_jobs=-1))
     ])
 
+    trial_ids = features.index.to_series()
     cv_results = cross_validate(
         pipeline, features, classes, 
         groups=groups,
@@ -30,7 +35,7 @@ def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
         return_train_score=True,
         return_estimator=True,
         n_jobs=-1,
-        verbose=True
+        verbose=3
     )
 
-    return cv_results, features, classes, groups, folds
+    return pipeline, cv_results, features, classes, groups, folds, trial_ids
