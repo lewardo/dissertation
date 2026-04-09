@@ -1,0 +1,169 @@
+======================================================================
+MODELLING REPORT
+2026-04-07 16:39:31
+Biclass (lo/hi)
+======================================================================
+
+# RUNNING CONFIG
+----------------------------------------------------------------------
+{
+    "preprocess_calibrate": false,
+    "preprocess_cutoff": 20,
+    "preprocess_trim": false,
+    "augment_jerk": true,
+    "augment_mags": false,
+    "window_data": false,
+    "window_size": 250,
+    "window_hop": 125,
+    "affect": "stress"
+}
+
+======================================================================
+
+# MODELLING CONFIG
+----------------------------------------------------------------------
+Pipeline(steps=[('scaler', StandardScaler()), ('reducer', SelectKBest(k=1000)),
+                ('selector',
+                 RFECV(estimator=RandomForestClassifier(n_jobs=-1), n_jobs=-1,
+                       step=0.01)),
+                ('classifier', GradientBoostingClassifier(n_estimators=250))])
+
+======================================================================
+
+# CV RESULTS
+----------------------------------------------------------------------
+           fit_time  score_time  test_accuracy  train_accuracy  test_precision  train_precision  test_recall  train_recall   test_f1  train_f1  overfit_gap
+Fold 1   241.443644    0.032134       0.428571             1.0        0.452381              1.0     0.428571           1.0  0.419780       1.0     0.571429
+Fold 2   241.857191    0.026772       0.635714             1.0        0.642288              1.0     0.635714           1.0  0.637420       1.0     0.364286
+Fold 3   239.266690    0.054324       0.562500             1.0        0.593371              1.0     0.562500           1.0  0.523080       1.0     0.437500
+Fold 4   241.106331    0.034714       0.268750             1.0        0.214010              1.0     0.268750           1.0  0.232000       1.0     0.731250
+Mean     240.918464    0.036986       0.473884             1.0        0.475512              1.0     0.473884           1.0  0.453070       1.0     0.526116
+Std Dev    1.143194    0.012023       0.161426             0.0        0.192027              0.0     0.161426           0.0  0.172111       0.0     0.161426
+
+======================================================================
+
+# PER-PARTICIPANT PERFORMANCE (GLOBAL)
+----------------------------------------------------------------------
+             Fold  Accuracy  Num_Trials
+Participant                            
+9               1      0.00          20
+25              1      0.00          20
+28              4      0.00          20
+22              4      0.00          20
+12              4      0.00          20
+4               4      0.00          20
+27              3      0.00          20
+24              3      0.00          20
+16              4      0.05          20
+23              2      0.10          20
+19              2      0.10          20
+20              4      0.15          20
+21              1      0.30          20
+8               3      0.40          20
+10              2      0.45          20
+1               1      0.50          20
+11              3      0.50          20
+17              1      0.50          20
+15              3      0.70          20
+5               1      0.75          20
+2               2      0.80          20
+3               3      0.90          20
+30              4      0.95          20
+13              1      0.95          20
+26              2      1.00          20
+14              2      1.00          20
+6               2      1.00          20
+18              3      1.00          20
+7               4      1.00          20
+29              3      1.00          20
+
+======================================================================
+
+# STABLE FEATURES (GLOBAL)
+----------------------------------------------------------------------
+Total features stable across ALL folds: 26
+
+Features list:
+ - p__cwt_coefficients__coeff_11__w_20__widths_(2, 5, 10, 20)
+ - p__cwt_coefficients__coeff_13__w_20__widths_(2, 5, 10, 20)
+ - ax__mean_abs_change
+ - ax__standard_deviation
+ - ax__root_mean_square
+ - ay__mean_abs_change
+ - ay__fft_aggregated__aggtype_"skew"
+ - az__mean_abs_change
+ - az__standard_deviation
+ - az__root_mean_square
+ - gy__median
+ - gy__root_mean_square
+ - gz__mean_abs_change
+ - gz__standard_deviation
+ - gz__kurtosis
+ - gz__root_mean_square
+ - gz__binned_entropy__max_bins_10
+ - gz__fft_aggregated__aggtype_"kurtosis"
+ - gz__permutation_entropy__dimension_5__tau_1
+ - gz__permutation_entropy__dimension_6__tau_1
+ - jx__mean_abs_change
+ - jy__median
+ - jy__standard_deviation
+ - jy__root_mean_square
+ - jy__fft_aggregated__aggtype_"kurtosis"
+ - jz__root_mean_square
+
+======================================================================
+
+# TRIAL-BASED STATS
+----------------------------------------------------------------------
+Average Prediction Confidence: 0.9234
+Avg Confidence when Correct:   0.9349
+Avg Confidence when Incorrect: 0.9102
+Average Prediction Margin:     0.8468
+
+======================================================================
+
+# TRIAL CONFUSION MATRIX
+----------------------------------------------------------------------
+            Pred_False  Pred_True
+True_False           0        280
+True_True            0        320
+
+======================================================================
+
+# PER-PARTICIPANT PERFORMANCE (TRIAL-LEVEL)
+----------------------------------------------------------------------
+             Fold  Trial_Accuracy  Avg_Confidence  Num_Trials
+Participant                                                  
+21              1             0.0        0.804762          20
+13              1             0.0        0.913778          20
+19              2             0.0        0.949519          20
+1               1             0.0        0.737746          20
+2               2             0.0        0.866550          20
+8               3             0.0        0.851462          20
+26              2             0.0        0.999681          20
+15              3             0.0        0.931831          20
+27              3             0.0        0.994877          20
+16              4             0.0        0.946554          20
+4               4             0.0        0.992075          20
+20              4             0.0        0.887797          20
+24              3             0.0        0.926213          20
+28              4             0.0        0.940329          20
+9               1             1.0        0.999221          20
+17              1             1.0        0.836880          20
+11              3             1.0        0.830277          20
+23              2             1.0        0.931898          20
+6               2             1.0        0.989941          20
+10              2             1.0        0.800941          20
+14              2             1.0        0.986666          20
+5               1             1.0        0.860616          20
+25              1             1.0        0.999430          20
+18              3             1.0        0.965953          20
+30              4             1.0        0.978979          20
+3               3             1.0        0.881022          20
+29              3             1.0        0.935623          20
+7               4             1.0        0.998041          20
+12              4             1.0        0.964448          20
+22              4             1.0        0.999097          20
+
+======================================================================
+

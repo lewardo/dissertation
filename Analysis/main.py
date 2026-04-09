@@ -15,13 +15,15 @@ from model.extract import extract_features
 from model.model import model_series
 from model.report import generate_full_report, save_report_to_file
 
+bad_participants = [0]
+
 if __name__ == "__main__":
     arguments = parse_arguments()
 
     print("Loading file keys")
     trial_info, all_keys = load_trial_keys("Raw")
     participant, attempt, script, stress, fatigue = all_keys
-    file_names, trial_keys = filter_trials(trial_info, all_keys, [participant > 0])
+    file_names, trial_keys = filter_trials(trial_info, all_keys, [np.isin(participant, bad_participants, invert=True)])
 
     print("Loading trial data")
     trial_frames, trial_targets, trial_participants = [], {}, {}
@@ -51,9 +53,13 @@ if __name__ == "__main__":
 
             trial_frames.append(trial_frame)
 
-    trials_dataframe = pd.concat(trial_frames, ignore_index=True)
     trials_classes = pd.Series(trial_targets)
     trials_participants = pd.Series(trial_participants)
+    trials_dataframe = pd.concat(trial_frames, ignore_index=True)
+
+    trials_classes = trials_classes[trials_classes.notna()].astype(int)
+    trials_participants = trials_participants[trials_classes.notna()]
+    trials_dataframe = trials_dataframe[trials_dataframe['id'].isin(set(trials_classes.index))]
 
     print(trials_dataframe)
 
