@@ -6,25 +6,27 @@ from sklearn.model_selection import StratifiedGroupKFold, cross_validate
 from sklearn.feature_selection import RFE, SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.svm import SVC
+
+# from skrebate import ReliefF
 
 def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
     # Build the pipeline
     folds = StratifiedGroupKFold(n_splits=4)
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
-        ('reducer', SelectKBest(f_classif, k=500)),
+        ('reducer', SelectKBest(f_classif, k=100)),
         ('selector', RFE(
-            n_features_to_select=25,
             estimator=RandomForestClassifier(n_estimators=100, n_jobs=-1),
-            step=0.05,
-            # n_jobs=-1
+            n_features_to_select=10,
+            step=1
         )),
         ('classifier', RandomForestClassifier(
-            n_estimators=250, 
+            n_estimators=500, 
             max_depth=5,
             class_weight='balanced',
-            n_jobs=-1
+            n_jobs=-1,
         ))
     ])
 

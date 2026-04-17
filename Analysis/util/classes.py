@@ -1,24 +1,26 @@
 #! /usr/bin/env python
 
+stress_boundaries = [20, 24] # 14, 27
+fatigue_boundaries = [24, 30] # 21, 36
+biclass = True
+
 def get_key_class(key: tuple, mode: str) -> int:
     # PSS-10 boundaries
     if mode == 'stress':
-        # return key[3] >= 22
-        if key[3] < 14: # 14
+        if key[3] < stress_boundaries[0]: # 14
             return 0
-        if key[3] < 27: # 27
-            return None
+        if key[3] < stress_boundaries[1]: # 27
+            return None if biclass else 1
     
     # REST boundaries
     if mode == 'fatigue':
-        # return key[4] >= 22
-        if key[4] < 21:
+        if key[4] < fatigue_boundaries[0]:
             return 0
-        if key[4] < 36: # 36
-            return None
+        if key[4] < fatigue_boundaries[1]: # 36
+            return None if biclass else 1
     
     # Otherwise
-    return 1
+    return 1 if biclass else 2
 
 def get_key_participant(key: tuple) -> int:
     return key[0]

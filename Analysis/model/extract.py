@@ -3,53 +3,47 @@
 import pandas as pd
 import tsfresh as tsf
 
-# from tsfresh.transformers import RelevantFeatureAugmenter
-from tsfresh.feature_extraction import EfficientFCParameters
-
 def extract_features(dataset: pd.DataFrame, classes: pd.Series) -> pd.DataFrame:
     print("Extracting features...")
-    feature_subset = [
-        'sum_values',
-        'abs_energy',
-        'mean_abs_change',
-        'mean_change',
-        'median',
-        'mean',
-        'standard_deviation',
-        'skewness',
-        'kurtosis',
-        'root_mean_square',
-        'longest_strike_below_mean',
-        'longest_strike_above_mean',
-        'count_above_mean',
-        'count_below_mean',
-        # 'benford_correlation',
-        # 'time_reversal_asymmetry_statistic',
-        # 'c3',
-        # 'cid_ce',
-        # 'symmetry_looking',
-        # 'large_standard_deviation',
-        # 'quantile',
-        # 'autocorrelation',
-        # 'agg_autocorrelation',
-        # 'partial_autocorrelation',
-        # 'number_cwt_peaks',
-        'number_peaks',
-        'binned_entropy',
-        'index_mass_quantile',
-        'cwt_coefficients',
-        'fft_coefficient',
-        'fft_aggregated',
-        # 'lempel_ziv_complexity',
-        'fourier_entropy',
-        'permutation_entropy'
-    ]
-
-    full_efficient_settings = EfficientFCParameters()
     customFCParameters = {
-        feature: full_efficient_settings[feature] 
-        for feature in feature_subset 
-        if feature in full_efficient_settings
+        "fft_coefficient": [{"coeff": c, "attr": "abs"} for c in [1, 2, 5, 10, 25, 50, 75]],
+        "fft_aggregated": [{"aggtype": "skew"}, {"aggtype": "kurtosis"}],
+        
+        "sample_entropy": None,
+        "approximate_entropy": [
+            {"m": 2, "r": 0.1}, 
+            {"m": 2, "r": 0.5}
+        ],
+        "permutation_entropy": [{"tau": 1, "dimension": 3}, {"tau": 1, "dimension": 5}],
+        "binned_entropy": [{"max_bins": 10}],
+        "fourier_entropy": [{"bins": 10}],
+        
+        # Peak Analysis - Capturing hesitations
+        "number_peaks": [{"n": 5}, {"n": 10}],
+        "number_cwt_peaks": [{"n": 5}],
+
+        "linear_trend": [
+            {"attr": "slope"}, 
+            {"attr": "intercept"}, 
+            {"attr": "stderr"}
+        ],
+
+        "energy_ratio_by_chunks": [
+            {"num_segments": 2, "segment_focus": 0}, # First half
+            {"num_segments": 2, "segment_focus": 1}  # Second half
+        ],
+
+        "autocorrelation": [
+            {"lag": 1}, 
+            {"lag": 5}, 
+            {"lag": 10}
+        ],
+        
+        # Statistical - Capturing intensity
+        "standard_deviation": None,
+        "root_mean_square": None,
+        "mean_abs_change": None,
+        "variation_coefficient": None
     }
 
     extracted_features = tsf.extract_features(

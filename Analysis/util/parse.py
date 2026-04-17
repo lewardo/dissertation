@@ -7,12 +7,11 @@ def parse_arguments():
 
     parser.add_argument("-c", "--preprocess-calibrate", type=bool, default=False, help="Preprocessing calibration")
     parser.add_argument("-f", "--preprocess-cutoff", type=int, default=20, help="Preprocessing filer cutoff")
-    parser.add_argument("-t", "--preprocess-trim", type=bool, default=False, help="Preprocessing trimming")
+    parser.add_argument("-t", "--preprocess-trim", action='store_true', help="Preprocessing trimming")
+    parser.add_argument("-j", "--augment-jerk", action='store_true', help="Augmentation jerk")
+    parser.add_argument("-m", "--augment-mags", action='store_true', help="Augmentation magnitudes")
 
-    parser.add_argument("-j", "--augment-jerk", type=bool, default=False, help="Augmentation jerk")
-    parser.add_argument("-m", "--augment-mags", type=bool, default=False, help="Augmentation magnitudes")
-
-    parser.add_argument("-w", "--window-data", type=bool, default=False, help="Window size")
+    parser.add_argument("-w", "--window-data", action='store_true', help="Window size")
     parser.add_argument("-s", "--window-size", type=int, default=250, help="Window size")
     parser.add_argument("-p", "--window-hop", type=int, default=125, help="Window hop")
 
