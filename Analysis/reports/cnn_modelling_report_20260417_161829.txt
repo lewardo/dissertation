@@ -1,0 +1,72 @@
+======================================================================
+CNN MODELLING REPORT (RAW SENSOR INPUT)
+2026-04-17 16:18:29
+======================================================================
+
+# RUNNING CONFIG
+{
+    "preprocess_calibrate": false,
+    "preprocess_cutoff": 20,
+    "preprocess_trim": false,
+    "augment_jerk": true,
+    "augment_mags": false,
+    "window_data": true,
+    "window_size": 250,
+    "window_hop": 125,
+    "affect": "stress"
+}
+
+# CV RESULTS (WINDOW-LEVEL)
+         fit_time  score_time  test_accuracy  train_accuracy  test_f1_weighted  train_f1_weighted  overfit_gap
+Fold 1   2.513151    0.247297       0.305245        0.449299          0.301075           0.475120     0.144054
+Fold 2   2.301538    0.226289       0.329341        0.551425          0.347149           0.563578     0.222084
+Fold 3   2.297257    0.224562       0.448959        0.646694          0.441163           0.628201     0.197734
+Fold 4   2.258540    0.175757       0.258523        0.427536          0.271260           0.400961     0.169014
+Mean     2.342622    0.218476       0.335517        0.518738          0.340162           0.516965     0.183221
+Std Dev  0.115320    0.030296       0.081141        0.100963          0.074219           0.099589     0.033945
+
+# TRIAL-BASED STATS (AGGREGATED WINDOWS)
+Average Prediction Confidence: 0.4212
+Avg Confidence when Correct:   0.4235
+Avg Confidence when Incorrect: 0.4200
+Average Prediction Margin:     0.0825
+
+# TRIAL CONFUSION MATRIX
+        Pred_0  Pred_1  Pred_2
+True_0      20      34      26
+True_1     163     155      61
+True_2      49      60      31
+
+# PER-PARTICIPANT PERFORMANCE (TRIAL-LEVEL)
+             Fold  Trial_Accuracy  Avg_Confidence  Num_Trials
+Participant                                                  
+9               1            0.00        0.462486          20
+30              1            0.00        0.397606          20
+1               3            0.00        0.523133          20
+12              2            0.00        0.497713          20
+27              2            0.00        0.442365          20
+14              4            0.00        0.379297          19
+23              4            0.00        0.386173          20
+15              4            0.00        0.391524          20
+21              4            0.05        0.405161          20
+6               2            0.10        0.405230          20
+18              1            0.10        0.404282          20
+2               4            0.10        0.377403          20
+11              3            0.15        0.484405          20
+28              1            0.30        0.408515          20
+3               4            0.35        0.371379          20
+24              1            0.40        0.407684          20
+8               1            0.45        0.384940          20
+7               1            0.45        0.417969          20
+22              2            0.45        0.403049          20
+26              4            0.45        0.353721          20
+25              4            0.50        0.428761          20
+4               3            0.55        0.396753          20
+13              1            0.55        0.434224          20
+5               2            0.60        0.424206          20
+29              3            0.60        0.428165          20
+10              2            0.65        0.408194          20
+20              2            0.70        0.432792          20
+17              3            0.90        0.452065          20
+19              3            0.90        0.478604          20
+16              3            1.00        0.445343          20

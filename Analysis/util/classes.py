@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 
-stress_boundaries = [20, 24] # 14, 27
-fatigue_boundaries = [24, 30] # 21, 36
-biclass = True
+stress_boundaries = [14, 27] #[20, 24] # 14, 27
+fatigue_boundaries = [21, 36] #[24, 30] # 21, 36
+biclass = False
 
 def get_key_class(key: tuple, mode: str) -> int:
     # PSS-10 boundaries
