@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
 import pandas as pd
+import numpy as np
 
 from sklearn.model_selection import StratifiedGroupKFold, cross_validate
-from sklearn.feature_selection import RFE, SelectKBest, f_classif
+from sklearn.feature_selection import RFECV, SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
@@ -17,13 +18,13 @@ def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
         ('reducer', SelectKBest(f_classif, k=100)),
-        ('selector', RFE(
+        ('selector', RFECV(
             estimator=RandomForestClassifier(n_estimators=100, n_jobs=-1),
-            n_features_to_select=10,
-            step=1
+            min_features_to_select=20,
+            step=0.05
         )),
         ('classifier', RandomForestClassifier(
-            n_estimators=500, 
+            n_estimators=50, 
             max_depth=5,
             class_weight='balanced',
             n_jobs=-1,

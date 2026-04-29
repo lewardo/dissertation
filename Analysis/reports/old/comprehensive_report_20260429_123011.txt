@@ -1,0 +1,56 @@
+================================================================================
+COMPREHENSIVE MODELLING REPORT - 2026-04-29 12:30:11
+================================================================================
+
+# DATASET PROFILE
+------------------------------
+Participants: 30
+Total Trials: 600
+Total Windows: 600
+Class Balance: {1: 0.6333333333333333, 2: 0.23333333333333334, 0: 0.13333333333333333}
+
+# VARIABILITY ANALYSIS (BETWEEN VS WITHIN)
+------------------------------
+High B/W Ratio indicates the feature identifies the PERSON more than the STATE.
+                                        Between_Subject_Var  Within_Subject_Var  B/W_Ratio
+ax__fft_aggregated__aggtype_"skew"                 0.017920            0.005752   3.115212
+jx__fft_aggregated__aggtype_"kurtosis"           678.444584          280.892571   2.415317
+gx__fft_aggregated__aggtype_"skew"                 0.037420            0.015540   2.407954
+gz__mean_abs_change                                0.007335            0.003079   2.382260
+gz__fft_aggregated__aggtype_"kurtosis"            13.068178            5.871908   2.225542
+gz__fft_aggregated__aggtype_"skew"                 0.027673            0.012807   2.160686
+az__fft_aggregated__aggtype_"skew"                 0.020364            0.009517   2.139821
+jx__fft_aggregated__aggtype_"skew"                 0.011508            0.005794   1.986067
+ax__fft_aggregated__aggtype_"kurtosis"            38.723963           21.693746   1.785029
+jz__fft_aggregated__aggtype_"kurtosis"           714.097502          404.054548   1.767329
+gy__fft_aggregated__aggtype_"skew"                 0.024033            0.015156   1.585762
+p__mean_abs_change                                 0.000700            0.000459   1.525927
+jz__fft_aggregated__aggtype_"skew"                 0.011974            0.007888   1.518033
+gy__mean_abs_change                                0.006216            0.004444   1.398644
+jy__fft_aggregated__aggtype_"skew"                 0.010184            0.007555   1.347882
+
+# CROSS-VALIDATION SUMMARY (WINDOW-LEVEL)
+------------------------------
+    fit_time  score_time  test_accuracy  train_accuracy  test_precision  train_precision  test_recall  train_recall   test_f1  train_f1  overfit_gap
+0  42.617620    0.337672       0.600000        0.990909        0.460918         0.991056     0.600000      0.990909  0.498162  0.990923     0.390909
+1  43.962676    0.286009       0.481250        0.986364        0.364583         0.986916     0.481250      0.986364  0.414871  0.986448     0.505114
+2  44.937045    0.170470       0.528571        0.958696        0.527417         0.961112     0.528571      0.958696  0.527074  0.959236     0.430124
+3  43.546097    0.289694       0.407143        0.976087        0.321139         0.976180     0.407143      0.976087  0.356564  0.976126     0.568944
+
+# TRIAL-LEVEL PERFORMANCE (AGGREGATED)
+------------------------------
+Trial Accuracy: 0.5067
+Avg Confidence: 0.5695
+Avg Margin:     0.2791
+
+## Trial Confusion Matrix
+    0    1   2
+0   0   63  17
+1  13  295  72
+2   3  128   9
+
+# STABLE FEATURES
+------------------------------
+Features appearing in 100% of folds: 25
+['p__mean_abs_change', 'ax__fft_aggregated__aggtype_"skew"', 'ay__fft_aggregated__aggtype_"skew"', 'az__fft_aggregated__aggtype_"skew"', 'az__fft_aggregated__aggtype_"kurtosis"', 'az__mean_abs_change', 'gx__fft_coefficient__attr_"abs"__coeff_1', 'gx__fft_coefficient__attr_"abs"__coeff_2', 'gx__fft_aggregated__aggtype_"skew"', 'gx__fft_aggregated__aggtype_"kurtosis"', 'gx__mean_abs_change', 'gy__fft_aggregated__aggtype_"skew"', 'gy__fft_aggregated__aggtype_"kurtosis"', 'gy__mean_abs_change', 'gz__fft_coefficient__attr_"abs"__coeff_1', 'gz__fft_coefficient__attr_"abs"__coeff_2', 'gz__fft_coefficient__attr_"abs"__coeff_5', 'gz__fft_aggregated__aggtype_"skew"', 'gz__fft_aggregated__aggtype_"kurtosis"', 'jx__fft_aggregated__aggtype_"kurtosis"', 'jx__mean_abs_change', 'jy__fft_aggregated__aggtype_"skew"', 'jy__mean_abs_change', 'jz__fft_aggregated__aggtype_"kurtosis"', 'jz__mean_abs_change']
+

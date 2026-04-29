@@ -1,0 +1,51 @@
+================================================================================
+COMPREHENSIVE MODELLING REPORT - 2026-04-29 12:12:35
+================================================================================
+
+# DATASET PROFILE
+------------------------------
+Participants: 30
+Total Trials: 4230
+Total Windows: 4230
+Class Balance: {1: 0.5891252955082742, 2: 0.2375886524822695, 0: 0.17328605200945627}
+
+# VARIABILITY ANALYSIS (BETWEEN VS WITHIN)
+------------------------------
+High B/W Ratio indicates the feature identifies the PERSON more than the STATE.
+                                             Between_Subject_Var  Within_Subject_Var  B/W_Ratio
+gz__permutation_entropy__dimension_5__tau_1             0.032426            0.017565   1.846012
+gz__permutation_entropy__dimension_3__tau_1             0.002255            0.001318   1.710890
+ax__autocorrelation__lag_1                              0.007760            0.004700   1.651179
+gx__permutation_entropy__dimension_5__tau_1             0.024401            0.016066   1.518733
+jy__sample_entropy                                      0.083012            0.055717   1.489881
+gx__permutation_entropy__dimension_3__tau_1             0.001717            0.001192   1.440390
+ax__fft_aggregated__aggtype_"skew"                      0.017324            0.012405   1.396550
+az__approximate_entropy__m_2__r_0.5                     0.013599            0.010068   1.350737
+gx__sample_entropy                                      0.058623            0.043462   1.348825
+ay__sample_entropy                                      0.067341            0.050591   1.331081
+gz__mean_abs_change                                     0.006544            0.005009   1.306420
+jx__autocorrelation__lag_1                              0.005556            0.004386   1.266617
+jy__approximate_entropy__m_2__r_0.5                     0.015614            0.012531   1.246008
+gy__permutation_entropy__dimension_5__tau_1             0.022806            0.018851   1.209791
+ax__autocorrelation__lag_5                              0.010177            0.008440   1.205825
+
+# CROSS-VALIDATION SUMMARY (WINDOW-LEVEL)
+------------------------------
+     fit_time  score_time  test_accuracy  train_accuracy  test_precision  train_precision  test_recall  train_recall   test_f1  train_f1  overfit_gap
+0  139.298062    0.167795       0.390370        0.784154        0.357621         0.822394     0.390370      0.784154  0.373233  0.789648     0.393784
+1  138.679078    0.273128       0.341317        0.840768        0.311507         0.855038     0.341317      0.840768  0.321040  0.843403     0.499451
+2  135.997729    0.260845       0.266601        0.797889        0.386102         0.810765     0.266601      0.797889  0.308678  0.800909     0.531288
+3  138.067277    0.351171       0.372159        0.859798        0.370092         0.870945     0.372159      0.859798  0.370968  0.861865     0.487639
+
+# TRIAL-LEVEL PERFORMANCE (AGGREGATED)
+------------------------------
+Trial Accuracy: 0.3447
+Avg Confidence: 0.5247
+Avg Margin:     0.2065
+
+## Trial Confusion Matrix
+     0     1    2
+0    2   567  164
+1  552  1246  694
+2  195   600  210
+

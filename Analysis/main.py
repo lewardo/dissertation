@@ -89,5 +89,5 @@ if __name__ == "__main__":
     model = model_series(trials_features, trials_classes, trials_participants)
 
     print("Generating report")
-    report = generate_full_report(*model)
-    save_report_to_file(arguments, *report)
+    report = generate_full_report(*model, arguments)
+    save_report_to_file(report)

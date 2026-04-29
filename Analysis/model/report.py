@@ -1,223 +1,218 @@
-import json, os
+import json
+import os
 import pandas as pd
 import sklearn as sk
 import numpy as np
-
 from datetime import datetime
-
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-def generate_full_report(pipeline, cv_results, features, classes, groups, group_fold, trial_ids):
-    cv_report = pd.DataFrame(cv_results)
+# --- 1. DATASET ANALYSIS MODULE ---
+
+def get_dataset_stats(features, classes, groups, trial_ids):
+    """Generates statistics about the raw data structure and class balance."""
+    stats = {
+        'n_samples': len(classes),
+        'n_participants': groups.nunique(),
+        'n_trials': trial_ids.nunique(),
+        'class_distribution': classes.value_counts(normalize=True).to_dict(),
+        'samples_per_part_mean': groups.value_counts().mean(),
+        'samples_per_part_std': groups.value_counts().std()
+    }
+    return stats
+
+def analyze_variability(features, groups):
+    """Calculates Between-Subject and Within-Subject variability for features."""
+    if not isinstance(features, pd.DataFrame):
+        return None
+    
+    part_means = features.groupby(groups).mean()
+    between_var = part_means.var()
+    part_vars = features.groupby(groups).var()
+    within_var = part_vars.mean()
+    
+    variability_df = pd.DataFrame({
+        'Between_Subject_Var': between_var,
+        'Within_Subject_Var': within_var,
+        'B/W_Ratio': between_var / within_var.clip(lower=1e-6)
+    }).sort_values(by='B/W_Ratio', ascending=False)
+    
+    return variability_df
+
+# --- 2. PREDICTION ANALYSIS MODULE ---
+
+def get_detailed_cv_summary(cv_results):
+    """Generates a summary table with Mean and Std Dev for all CV metrics."""
+    cv_report = pd.DataFrame(cv_results).drop(columns=['estimator'])
     cv_report.index = [f"Fold {i+1}" for i in range(len(cv_report))]
     
-    numeric_report = cv_report.drop(columns=['estimator'])
+    if 'train_accuracy' in cv_report.columns and 'test_accuracy' in cv_report.columns:
+        cv_report['overfit_gap'] = cv_report['train_accuracy'] - cv_report['test_accuracy']
     
-    if 'train_accuracy' in numeric_report.columns:
-        numeric_report['overfit_gap'] = numeric_report['train_accuracy'] - numeric_report['test_accuracy']
-    
-    mean_row = numeric_report.mean().to_frame().T
+    mean_row = cv_report.mean().to_frame().T
     mean_row.index = ['Mean']
-    std_row = numeric_report.std().to_frame().T
+    std_row = cv_report.std().to_frame().T
     std_row.index = ['Std Dev']
     
-    summary_df = pd.concat([numeric_report, mean_row, std_row])
-    
-    print("# Model config")
-    sk.set_config(display='text')
-    print(str(pipeline))
+    return pd.concat([cv_report, mean_row, std_row])
 
-    print("# Model stats")
-    cols_to_show = ['fit_time', 'test_accuracy', 'test_f1', 'overfit_gap']
-    print(summary_df[cols_to_show].round(3))
-    print("-" * 65)
-
-    participant_data = []
-    all_targets = []
-    all_predictions = []
-    
-    for fold_idx, (train_idx, test_idx) in enumerate(group_fold.split(features, classes, groups=groups)):
-        model = cv_results['estimator'][fold_idx]
-        
-        test_data = features.iloc[test_idx]
-        test_target = classes.iloc[test_idx]
-        groups_test = groups.iloc[test_idx]
-        
-        test_predictions = model.predict(test_data)
-        
-        all_targets.extend(test_target.tolist())
-        all_predictions.extend(test_predictions.tolist())
-        
-        for participant in groups_test.unique():
-            mask = groups_test == participant
-            part_acc = accuracy_score(test_target[mask], test_predictions[mask])
-            
-            participant_data.append({
-                'Participant': participant,
-                'Fold': fold_idx + 1,
-                'Accuracy': part_acc,
-                'Num_Trials': mask.sum()
-            })
-            
-    part_df = pd.DataFrame(participant_data).set_index('Participant').sort_values(by='Accuracy')
-    
-    print("\n# Per-participant performance")
-    print(part_df.round(3))
-    print("-" * 65)
-    
-    print("\n# Global classification report (all folds)")
-    print(classification_report(all_targets, all_predictions))
-    print("-" * 65)
-
-    print("\n## Feature Selection Stability (RFE)")
-    
-    feature_counts = pd.Series(0, index=features.columns)
-    
-    for model in cv_results['estimator']:
-        reduced_mask = model.named_steps['reducer'].get_support()
-        selected_mask = model.named_steps['selector'].support_
-        selected_features = features.columns[reduced_mask][selected_mask]
-        feature_counts[selected_features] += 1
-        
-    stable_features = feature_counts[feature_counts == len(cv_results['estimator'])].index.tolist()
-    
-    print(f"Total features originally: {len(features.columns)}")
-    print(f"Features selected in ALL folds: {len(stable_features)}")
-    print(f"Stable Features: {stable_features}")
-
-    all_trial_true = []
-    all_trial_pred = []
-    all_trial_conf = []
+def get_prediction_results(cv_results, features, classes, groups, trial_ids, group_fold):
+    """
+    Unified function to extract window-level predictions, trial-level aggregations,
+    and participant-specific metrics.
+    """
+    all_targets, all_predictions = [], []
     all_trial_results = []
-    participant_results = []
+    participant_metrics = []
 
     for fold_idx, (train_idx, test_idx) in enumerate(group_fold.split(features, classes, groups=groups)):
         model = cv_results['estimator'][fold_idx]
         
-        test_data = features.iloc[test_idx]
-        test_target = classes.iloc[test_idx]
-        ids_test = trial_ids.iloc[test_idx]
-        parts_test = groups.iloc[test_idx]
+        # Slice data
+        X_test = features.iloc[test_idx] if isinstance(features, pd.DataFrame) else features[test_idx]
+        y_test, g_test, t_test = classes.iloc[test_idx], groups.iloc[test_idx], trial_ids.iloc[test_idx]
         
-        window_probs = model.predict_proba(test_data)
+        # Window-level
+        y_pred = model.predict(X_test)
+        all_targets.extend(y_test.tolist())
+        all_predictions.extend(y_pred.tolist())
+        
+        # Trial-level probability aggregation
+        probs = model.predict_proba(X_test)
         prob_cols = [f"prob_{c}" for c in model.classes_]
         
-        results_df = pd.DataFrame(window_probs, columns=prob_cols, index=test_data.index)
-        results_df['trial_id'] = ids_test.values
-        results_df['participant'] = parts_test.values
-        results_df['true_class'] = test_target.values
+        res_df = pd.DataFrame(probs, columns=prob_cols, index=y_test.index)
+        res_df['trial_id'], res_df['participant'], res_df['true_class'] = t_test.values, g_test.values, y_test.values
 
-        trial_summary = results_df.groupby('trial_id').agg({
+        trial_summary = res_df.groupby('trial_id').agg({
             **{col: 'mean' for col in prob_cols},
-            'true_class': 'first',
-            'participant': 'first',
-            'trial_id': 'count' # This counts the number of windows
+            'true_class': 'first', 'participant': 'first', 'trial_id': 'count'
         }).rename(columns={'trial_id': 'window_count'})
 
-        mean_probs = trial_summary[prob_cols]
+        # Predictions from Mean Probabilities
+        trial_summary['pred_class'] = trial_summary[prob_cols].idxmax(axis=1).str.replace('prob_', '').astype(y_test.dtype)
+        trial_summary['confidence'] = trial_summary[prob_cols].max(axis=1)
         
-        trial_summary['pred_class'] = mean_probs.idxmax(axis=1).str.replace('prob_', '').astype(test_target.dtype)
-        trial_summary['confidence'] = mean_probs.max(axis=1)
-        
-        sorted_probs = np.sort(mean_probs.values, axis=1)
-        trial_summary['margin'] = sorted_probs[:, -1] - sorted_probs[:, -2]
-        
+        sorted_p = np.sort(trial_summary[prob_cols].values, axis=1)
+        trial_summary['margin'] = sorted_p[:, -1] - sorted_p[:, -2]
         trial_summary['is_correct'] = trial_summary['pred_class'] == trial_summary['true_class']
-
-        all_trial_true.extend(trial_summary['true_class'].tolist())
-        all_trial_pred.extend(trial_summary['pred_class'].tolist())
         all_trial_results.append(trial_summary)
 
-        for part in trial_summary['participant'].unique():
-            part_subset = trial_summary[trial_summary['participant'] == part]
-            participant_results.append({
-                'Participant': part,
-                'Fold': fold_idx + 1,
-                'Trial_Accuracy': accuracy_score(part_subset['true_class'], part_subset['pred_class']),
-                'Avg_Confidence': part_subset['confidence'].mean(),
-                'Num_Trials': len(part_subset)
-            })
-
-    full_trial_results = pd.concat(all_trial_results)
+    full_trials = pd.concat(all_trial_results)
     
-    labels = sorted(classes.unique())
-    cm = confusion_matrix(all_trial_true, all_trial_pred, labels=labels)
-    cm_df = pd.DataFrame(cm, index=[f"True_{l}" for l in labels], columns=[f"Pred_{l}" for l in labels])
+    # Calculate Per-Participant Table (Trial Level)
+    for part in full_trials['participant'].unique():
+        p_sub = full_trials[full_trials['participant'] == part]
+        participant_metrics.append({
+            'Participant': part,
+            'Trial_Accuracy': accuracy_score(p_sub['true_class'], p_sub['pred_class']),
+            'Avg_Confidence': p_sub['confidence'].mean(),
+            'Total_Trials': len(p_sub)
+        })
 
-    conf_stats = {
-        'overall_avg_conf': full_trial_results['confidence'].mean(),
-        'correct_avg_conf': full_trial_results[full_trial_results['is_correct']]['confidence'].mean(),
-        'incorrect_avg_conf': full_trial_results[~full_trial_results['is_correct']]['confidence'].mean(),
-        'avg_margin': full_trial_results['margin'].mean()
+    return {
+        'window_y_true': all_targets,
+        'window_y_pred': all_predictions,
+        'trial_data': full_trials,
+        'participant_df': pd.DataFrame(participant_metrics).set_index('Participant').sort_values('Trial_Accuracy')
     }
 
-    print("# TRIAL-LEVEL SUMMARY")
-    print(f"Global Trial Accuracy: {accuracy_score(all_trial_true, all_trial_pred):.3f}")
-    print(f"Avg Confidence (Correct): {conf_stats['correct_avg_conf']:.3f}")
-    print(f"Avg Confidence (Incorrect): {conf_stats['incorrect_avg_conf']:.3f}")
-    print("\n## Trial Confusion Matrix:")
-    print(cm_df)
+def get_stable_features(cv_results, features):
+    """Tracks features that persist across all CV folds."""
+    feature_counts = pd.Series(0, index=features.columns)
+    try:
+        for model in cv_results['estimator']:
+            # Compatibility for Pipeline(reducer -> selector) or simple selector
+            if 'reducer' in model.named_steps and 'selector' in model.named_steps:
+                mask = model.named_steps['reducer'].get_support()
+                sub_mask = model.named_steps['selector'].get_support()
+                selected = features.columns[mask][sub_mask]
+            elif 'selector' in model.named_steps:
+                selected = features.columns[model.named_steps['selector'].get_support()]
+            else:
+                continue
+            feature_counts[selected] += 1
+        return feature_counts[feature_counts == len(cv_results['estimator'])].index.tolist()
+    except:
+        return []
 
-    trial_df = pd.DataFrame(participant_results).set_index('Participant').sort_values('Trial_Accuracy')
+# --- 3. MAIN ORCHESTRATOR & WRITER ---
+
+def generate_full_report(pipeline, cv_results, features, classes, groups, group_fold, trial_ids, args_dict=None):
+    """Compiles everything into a single dictionary and prints summary."""
     
-    return pipeline, summary_df, part_df, trial_df, stable_features, cm_df, conf_stats
+    results = {
+        'dataset_stats': get_dataset_stats(features, classes, groups, trial_ids),
+        'variability': analyze_variability(features, groups),
+        'cv_summary': get_detailed_cv_summary(cv_results),
+        'preds': get_prediction_results(cv_results, features, classes, groups, trial_ids, group_fold),
+        'stable_features': get_stable_features(cv_results, features),
+        'pipeline_str': str(pipeline),
+        'args_dict': vars(args_dict)
+    }
 
-def save_report_to_file(args_dict: dict, pipeline: dict, summary_df: pd.DataFrame, part_df: pd.DataFrame, trial_df: pd.DataFrame, stable_features: list, cm_df: pd.DataFrame, conf_stats: dict):
-    # 1. Generate a default filename with a timestamp if one isn't provided
+    # Print Console Summary
+    print("\n" + "="*30 + " MODEL SUMMARY " + "="*30)
+    print(results['cv_summary'][['test_accuracy', 'test_f1']].round(3))
+    print(f"\nGlobal Trial Accuracy: {accuracy_score(results['preds']['trial_data']['true_class'], results['preds']['trial_data']['pred_class']):.3f}")
+    
+    return results
+
+def save_report_to_file(report_bundle):
+    """Writes the comprehensive report to a formatted text file."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     os.makedirs("reports", exist_ok=True)
-    filename = os.path.join(os.path.curdir, "reports", f"modelling_report_{timestamp}.txt")
+    filename = os.path.join("reports", f"comprehensive_modelling_report_{timestamp}.txt")
     
     with open(filename, 'w') as f:
-        f.write("=" * 70 + "\n")
-        f.write("MODELLING REPORT\n")
-        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write("=" * 70 + "\n\n")
+        f.write("=" * 80 + "\n")
+        f.write(f"COMPREHENSIVE MODELLING REPORT - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write("=" * 80 + "\n\n")
+
+        # 1. Configs
+        if report_bundle['args_dict']:
+            f.write("# RUN CONFIGURATION\n" + "-" * 30 + "\n")
+            f.write(json.dumps(report_bundle['args_dict'], indent=4) + "\n\n")
         
-        f.write("# RUNNING CONFIG\n")
-        f.write("-" * 70 + "\n")
-        f.write(json.dumps(vars(args_dict), indent=4)) 
-        f.write("\n\n" + "=" * 70 + "\n\n")
+        f.write("# PIPELINE STRUCTURE\n" + "-" * 30 + "\n")
+        f.write(report_bundle['pipeline_str'] + "\n\n")
 
-        f.write("# MODELLING CONFIG\n")
-        f.write("-" * 70 + "\n")
-        f.write(str(pipeline)) 
-        f.write("\n\n" + "=" * 70 + "\n\n")
-
-        f.write("# CV RESULTS\n")
-        f.write("-" * 70 + "\n")
-        f.write(summary_df.to_string())
-        f.write("\n\n" + "=" * 70 + "\n\n")
+        # 2. Dataset Stats & Variability
+        f.write("# DATASET PROFILE\n" + "-" * 30 + "\n")
+        for k, v in report_bundle['dataset_stats'].items():
+            f.write(f"{k}: {v}\n")
         
-        f.write("# PER-PARTICIPANT PERFORMANCE (GLOBAL)\n")
-        f.write("-" * 70 + "\n")
-        f.write(part_df.to_string())
-        f.write("\n\n" + "=" * 70 + "\n\n")
+        if report_bundle['variability'] is not None:
+            f.write("\n# VARIABILITY (Top 15 Features by B/W Ratio)\n")
+            f.write(report_bundle['variability'].head(15).to_string() + "\n\n")
+
+        # 3. CV Summary
+        f.write("# CROSS-VALIDATION SUMMARY\n" + "-" * 30 + "\n")
+        f.write(report_bundle['cv_summary'].to_string() + "\n\n")
+
+        # 4. Window-Level Report
+        f.write("# WINDOW-LEVEL CLASSIFICATION REPORT\n" + "-" * 30 + "\n")
+        f.write(classification_report(report_bundle['preds']['window_y_true'], report_bundle['preds']['window_y_pred']))
+        f.write("\n")
+
+        # 5. Trial-Level Aggregation
+        tr = report_bundle['preds']['trial_data']
+        f.write("# TRIAL-LEVEL PERFORMANCE\n" + "-" * 30 + "\n")
+        f.write(f"Global Trial Accuracy: {accuracy_score(tr['true_class'], tr['pred_class']):.4f}\n")
+        f.write(f"Avg Confidence:        {tr['confidence'].mean():.4f}\n")
+        f.write(f"Avg Margin:            {tr['margin'].mean():.4f}\n\n")
         
-        f.write("# STABLE FEATURES (GLOBAL)\n")
-        f.write("-" * 70 + "\n")
-        f.write(f"Total features stable across ALL folds: {len(stable_features)}\n\n")
-        f.write("Features list:\n")
-        for feature in stable_features:
-            f.write(f" - {feature}\n")
-        f.write("\n" + "=" * 70 + "\n\n")
+        labels = sorted(tr['true_class'].unique())
+        cm = confusion_matrix(tr['true_class'], tr['pred_class'], labels=labels)
+        f.write("## Trial Confusion Matrix\n")
+        f.write(pd.DataFrame(cm, index=[f"True_{l}" for l in labels], columns=[f"Pred_{l}" for l in labels]).to_string() + "\n\n")
 
-        f.write("# TRIAL-BASED STATS\n")
-        f.write("-" * 70 + "\n")
-        f.write(f"Average Prediction Confidence: {conf_stats['overall_avg_conf']:.4f}\n")
-        f.write(f"Avg Confidence when Correct:   {conf_stats['correct_avg_conf']:.4f}\n")
-        f.write(f"Avg Confidence when Incorrect: {conf_stats['incorrect_avg_conf']:.4f}\n")
-        f.write(f"Average Prediction Margin:     {conf_stats['avg_margin']:.4f}\n")
-        f.write("\n" + "=" * 70 + "\n\n")
+        # 6. Participant Breakdown
+        f.write("# PER-PARTICIPANT BREAKDOWN (TRIAL-LEVEL)\n" + "-" * 30 + "\n")
+        f.write(report_bundle['preds']['participant_df'].to_string() + "\n\n")
 
-        f.write("# TRIAL CONFUSION MATRIX\n")
-        f.write("-" * 70 + "\n")
-        f.write(cm_df.to_string())
-        f.write("\n\n" + "=" * 70 + "\n\n")
+        # 7. Features
+        f.write("# FEATURE STABILITY\n" + "-" * 30 + "\n")
+        f.write(f"Stable in 100% of folds ({len(report_bundle['stable_features'])} features):\n")
+        f.write(", ".join(report_bundle['stable_features']) + "\n")
 
-        f.write("# PER-PARTICIPANT PERFORMANCE (TRIAL-LEVEL)\n")
-        f.write("-" * 70 + "\n")
-        f.write(trial_df.to_string())
-        f.write("\n\n" + "=" * 70 + "\n\n")
-            
-    print(f"Report saved to: {filename}")
+    print(f"Report successfully saved to: {filename}")

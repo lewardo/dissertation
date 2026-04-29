@@ -9,37 +9,36 @@ def extract_features(dataset: pd.DataFrame, classes: pd.Series) -> pd.DataFrame:
         "fft_coefficient": [{"coeff": c, "attr": "abs"} for c in [1, 2, 5, 10, 25, 50, 75]],
         "fft_aggregated": [{"aggtype": "skew"}, {"aggtype": "kurtosis"}],
         
-        "sample_entropy": None,
-        "approximate_entropy": [
-            {"m": 2, "r": 0.1}, 
-            {"m": 2, "r": 0.5}
-        ],
-        "permutation_entropy": [{"tau": 1, "dimension": 3}, {"tau": 1, "dimension": 5}],
-        "binned_entropy": [{"max_bins": 10}],
-        "fourier_entropy": [{"bins": 10}],
+        # "sample_entropy": None,
+        # "approximate_entropy": [
+        #     {"m": 2, "r": 0.1}, 
+        #     {"m": 2, "r": 0.5}
+        # ],
+        # "permutation_entropy": [{"tau": 1, "dimension": 3}, {"tau": 1, "dimension": 5}],
+        # "binned_entropy": [{"max_bins": 10}],
+        # "fourier_entropy": [{"bins": 10}],
         
         # Peak Analysis - Capturing hesitations
-        "number_peaks": [{"n": 5}, {"n": 10}],
-        "number_cwt_peaks": [{"n": 5}],
+        # "number_peaks": [{"n": 5}, {"n": 10}],
+        # "number_cwt_peaks": [{"n": 5}],
 
-        "linear_trend": [
-            {"attr": "slope"}, 
-            {"attr": "intercept"}, 
-            {"attr": "stderr"}
-        ],
+        # "linear_trend": [
+        #     {"attr": "slope"}, 
+        #     {"attr": "intercept"}, 
+        #     {"attr": "stderr"}
+        # ],
 
-        "energy_ratio_by_chunks": [
-            {"num_segments": 2, "segment_focus": 0}, # First half
-            {"num_segments": 2, "segment_focus": 1}  # Second half
-        ],
+        # "energy_ratio_by_chunks": [
+        #     {"num_segments": 2, "segment_focus": 0}, # First half
+        #     {"num_segments": 2, "segment_focus": 1}  # Second half
+        # ],
 
-        "autocorrelation": [
-            {"lag": 1}, 
-            {"lag": 5}, 
-            {"lag": 10}
-        ],
+        # "autocorrelation": [
+        #     {"lag": 1}, 
+        #     {"lag": 5}, 
+        #     {"lag": 10}
+        # ],t
         
-        # Statistical - Capturing intensity
         "standard_deviation": None,
         "root_mean_square": None,
         "mean_abs_change": None,

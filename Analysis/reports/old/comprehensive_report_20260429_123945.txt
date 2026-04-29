@@ -1,0 +1,51 @@
+================================================================================
+COMPREHENSIVE MODELLING REPORT - 2026-04-29 12:39:45
+================================================================================
+
+# DATASET PROFILE
+------------------------------
+Participants: 30
+Total Trials: 600
+Total Windows: 600
+Class Balance: {1: 0.6333333333333333, 2: 0.23333333333333334, 0: 0.13333333333333333}
+
+# VARIABILITY ANALYSIS (BETWEEN VS WITHIN)
+------------------------------
+High B/W Ratio indicates the feature identifies the PERSON more than the STATE.
+                                        Between_Subject_Var  Within_Subject_Var  B/W_Ratio
+ax__fft_aggregated__aggtype_"skew"                 0.017920            0.005752   3.115212
+jx__fft_aggregated__aggtype_"kurtosis"           678.444584          280.892571   2.415317
+gx__fft_aggregated__aggtype_"skew"                 0.037420            0.015540   2.407954
+gz__mean_abs_change                                0.007335            0.003079   2.382260
+gz__fft_aggregated__aggtype_"kurtosis"            13.068178            5.871908   2.225542
+gz__fft_aggregated__aggtype_"skew"                 0.027673            0.012807   2.160686
+az__fft_aggregated__aggtype_"skew"                 0.020364            0.009517   2.139821
+jx__fft_aggregated__aggtype_"skew"                 0.011508            0.005794   1.986067
+ax__fft_aggregated__aggtype_"kurtosis"            38.723963           21.693746   1.785029
+jz__fft_aggregated__aggtype_"kurtosis"           714.097502          404.054548   1.767329
+gy__fft_aggregated__aggtype_"skew"                 0.024033            0.015156   1.585762
+p__mean_abs_change                                 0.000700            0.000459   1.525927
+jz__fft_aggregated__aggtype_"skew"                 0.011974            0.007888   1.518033
+gy__mean_abs_change                                0.006216            0.004444   1.398644
+jy__fft_aggregated__aggtype_"skew"                 0.010184            0.007555   1.347882
+
+# CROSS-VALIDATION SUMMARY (WINDOW-LEVEL)
+------------------------------
+    fit_time  score_time  test_accuracy  train_accuracy  test_precision  train_precision  test_recall  train_recall   test_f1  train_f1  overfit_gap
+0  30.958409    0.038911       0.593750        0.981818        0.458929         0.981872     0.593750      0.981818  0.486277  0.981787     0.388068
+1  32.300823    0.022525       0.475000        0.977273        0.377081         0.978339     0.475000      0.977273  0.419121  0.977521     0.502273
+2  32.602824    0.021117       0.557143        0.952174        0.532356         0.956638     0.557143      0.952174  0.543382  0.952965     0.395031
+3  30.371097    0.043187       0.428571        0.967391        0.337534         0.967219     0.428571      0.967391  0.373256  0.967274     0.538820
+
+# TRIAL-LEVEL PERFORMANCE (AGGREGATED)
+------------------------------
+Trial Accuracy: 0.5150
+Avg Confidence: 0.5720
+Avg Margin:     0.2808
+
+## Trial Confusion Matrix
+    0    1   2
+0   0   64  16
+1  16  299  65
+2   3  127  10
+
