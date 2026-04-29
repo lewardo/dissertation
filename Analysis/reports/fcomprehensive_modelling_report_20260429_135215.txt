@@ -1,0 +1,128 @@
+================================================================================
+COMPREHENSIVE MODELLING REPORT - 2026-04-29 13:52:15
+================================================================================
+
+# RUN CONFIGURATION
+------------------------------
+{
+    "preprocess_calibrate": false,
+    "preprocess_cutoff": 20,
+    "preprocess_trim": false,
+    "augment_jerk": false,
+    "augment_mags": false,
+    "window_data": false,
+    "window_size": 250,
+    "window_hop": 125,
+    "affect": "fatigue"
+}
+
+# PIPELINE STRUCTURE
+------------------------------
+Pipeline(steps=[('scaler', StandardScaler()), ('reducer', SelectKBest(k=100)),
+                ('selector',
+                 RFECV(estimator=RandomForestClassifier(n_jobs=-1),
+                       min_features_to_select=10, step=0.05)),
+                ('classifier',
+                 RandomForestClassifier(class_weight='balanced', max_depth=5,
+                                        n_estimators=500, n_jobs=-1))])
+
+# DATASET PROFILE
+------------------------------
+n_samples: 600
+n_participants: 30
+n_trials: 600
+class_distribution: {0: 0.4666666666666667, 1: 0.43333333333333335, 2: 0.1}
+samples_per_part_mean: 20.0
+samples_per_part_std: 0.0
+
+# VARIABILITY (Top 15 Features by B/W Ratio)
+                                        Between_Subject_Var  Within_Subject_Var  B/W_Ratio
+ax__fft_aggregated__aggtype_"skew"                 0.017920            0.005752   3.115212
+gx__fft_aggregated__aggtype_"skew"                 0.037420            0.015540   2.407954
+gz__mean_abs_change                                0.007335            0.003079   2.382260
+gz__fft_aggregated__aggtype_"kurtosis"            13.068178            5.871908   2.225542
+gz__fft_aggregated__aggtype_"skew"                 0.027673            0.012807   2.160686
+az__fft_aggregated__aggtype_"skew"                 0.020364            0.009517   2.139821
+ax__fft_aggregated__aggtype_"kurtosis"            38.723963           21.693746   1.785029
+gy__fft_aggregated__aggtype_"skew"                 0.024033            0.015156   1.585762
+p__mean_abs_change                                 0.000700            0.000459   1.525927
+gy__mean_abs_change                                0.006216            0.004444   1.398644
+gx__mean_abs_change                                0.004377            0.003336   1.312121
+az__fft_aggregated__aggtype_"kurtosis"            39.443534           30.887967   1.276987
+ay__fft_aggregated__aggtype_"skew"                 0.013040            0.010939   1.192036
+ay__fft_aggregated__aggtype_"kurtosis"            19.674026           21.304979   0.923447
+gy__fft_aggregated__aggtype_"kurtosis"             5.202863            6.040162   0.861378
+
+# CROSS-VALIDATION SUMMARY
+------------------------------
+          fit_time  score_time  test_accuracy  train_accuracy  test_precision  train_precision  test_recall  train_recall   test_f1  train_f1  overfit_gap
+Fold 1   66.008201    0.108838       0.357143        0.980435        0.310811         0.981538     0.357143      0.980435  0.331843  0.980669     0.623292
+Fold 2   63.910736    0.198384       0.506250        0.970455        0.456992         0.971077     0.506250      0.970455  0.474200  0.970433     0.464205
+Fold 3   64.677809    0.215977       0.400000        0.961364        0.385625         0.962011     0.400000      0.961364  0.383618  0.961420     0.561364
+Fold 4   64.918490    0.133001       0.371429        0.939130        0.408163         0.942338     0.371429      0.939130  0.388903  0.939414     0.567702
+Mean     64.878809    0.164050       0.408705        0.962846        0.390398         0.964241     0.408705      0.962846  0.394641  0.962984     0.554140
+Std Dev   0.866923    0.051276       0.067426        0.017625        0.060848         0.016640     0.067426      0.017625  0.058957  0.017572     0.066097
+
+# WINDOW-LEVEL CLASSIFICATION REPORT
+------------------------------
+              precision    recall  f1-score   support
+
+           0       0.44      0.47      0.46       280
+           1       0.41      0.44      0.42       260
+           2       0.04      0.02      0.02        60
+
+    accuracy                           0.41       600
+   macro avg       0.30      0.31      0.30       600
+weighted avg       0.39      0.41      0.40       600
+
+# TRIAL-LEVEL PERFORMANCE
+------------------------------
+Global Trial Accuracy: 0.4117
+Avg Confidence:        0.5432
+Avg Margin:            0.1987
+
+## Trial Confusion Matrix
+        Pred_0  Pred_1  Pred_2
+True_0     132     137      11
+True_1     133     114      13
+True_2      32      27       1
+
+# PER-PARTICIPANT BREAKDOWN (TRIAL-LEVEL)
+------------------------------
+             Trial_Accuracy  Avg_Confidence  Total_Trials
+Participant                                              
+6                      0.00        0.468434            20
+22                     0.00        0.582407            20
+28                     0.00        0.554821            20
+11                     0.00        0.572193            20
+12                     0.00        0.580446            20
+26                     0.05        0.496003            20
+21                     0.05        0.482973            20
+23                     0.05        0.512350            20
+15                     0.20        0.526304            20
+14                     0.25        0.526192            20
+16                     0.25        0.477739            20
+8                      0.30        0.521482            20
+25                     0.30        0.527140            20
+9                      0.35        0.458248            20
+2                      0.40        0.582039            20
+5                      0.40        0.558763            20
+17                     0.40        0.596583            20
+27                     0.45        0.498975            20
+1                      0.45        0.534110            20
+7                      0.50        0.600139            20
+10                     0.55        0.529148            20
+24                     0.65        0.512927            20
+4                      0.70        0.567787            20
+29                     0.75        0.512358            20
+19                     0.80        0.562231            20
+18                     0.80        0.586593            20
+30                     0.90        0.568147            20
+3                      0.90        0.543671            20
+13                     0.95        0.629731            20
+20                     0.95        0.625340            20
+
+# FEATURE STABILITY
+------------------------------
+Stable in 100% of folds (26 features):
+p__fft_coefficient__attr_"abs"__coeff_2, p__fft_aggregated__aggtype_"skew", p__mean_abs_change, ax__fft_aggregated__aggtype_"skew", ax__fft_aggregated__aggtype_"kurtosis", ay__fft_aggregated__aggtype_"skew", ay__fft_aggregated__aggtype_"kurtosis", ay__mean_abs_change, az__fft_aggregated__aggtype_"skew", az__fft_aggregated__aggtype_"kurtosis", az__mean_abs_change, gx__fft_coefficient__attr_"abs"__coeff_1, gx__fft_coefficient__attr_"abs"__coeff_2, gx__fft_coefficient__attr_"abs"__coeff_5, gx__fft_aggregated__aggtype_"skew", gx__fft_aggregated__aggtype_"kurtosis", gx__mean_abs_change, gy__fft_coefficient__attr_"abs"__coeff_1, gy__fft_aggregated__aggtype_"kurtosis", gy__root_mean_square, gy__mean_abs_change, gz__fft_coefficient__attr_"abs"__coeff_1, gz__fft_coefficient__attr_"abs"__coeff_5, gz__fft_aggregated__aggtype_"skew", gz__fft_aggregated__aggtype_"kurtosis", gz__mean_abs_change

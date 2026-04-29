@@ -41,8 +41,8 @@ def extract_features(dataset: pd.DataFrame, classes: pd.Series) -> pd.DataFrame:
         
         "standard_deviation": None,
         "root_mean_square": None,
-        "mean_abs_change": None,
-        "variation_coefficient": None
+        "mean_abs_change": None
+        # "variation_coefficient": None
     }
 
     extracted_features = tsf.extract_features(
