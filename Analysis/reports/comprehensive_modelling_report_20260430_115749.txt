@@ -1,0 +1,128 @@
+================================================================================
+COMPREHENSIVE MODELLING REPORT - 2026-04-30 11:57:49
+================================================================================
+
+# RUN CONFIGURATION
+------------------------------
+{
+    "preprocess_calibrate": false,
+    "preprocess_cutoff": 20,
+    "preprocess_trim": false,
+    "augment_jerk": true,
+    "augment_mags": true,
+    "window_data": false,
+    "window_size": 250,
+    "window_hop": 125,
+    "affect": "stress"
+}
+
+# PIPELINE STRUCTURE
+------------------------------
+Pipeline(steps=[('scaler', StandardScaler()), ('reducer', SelectKBest(k=100)),
+                ('selector',
+                 RFECV(estimator=RandomForestClassifier(n_jobs=-1),
+                       min_features_to_select=10, step=0.05)),
+                ('classifier',
+                 RandomForestClassifier(class_weight='balanced',
+                                        n_estimators=250, n_jobs=-1))])
+
+# DATASET PROFILE
+------------------------------
+n_samples: 600
+n_participants: 30
+n_trials: 600
+class_distribution: {1: 0.6333333333333333, 2: 0.23333333333333334, 0: 0.13333333333333333}
+samples_per_part_mean: 20.0
+samples_per_part_std: 0.0
+
+# VARIABILITY (Top 15 Features by B/W Ratio)
+                        Between_Subject_Var  Within_Subject_Var  B/W_Ratio
+gz__mean_abs_change                0.007335            0.003079   2.382260
+p__mean_abs_change                 0.000700            0.000459   1.525927
+gy__mean_abs_change                0.006216            0.004444   1.398644
+gx__mean_abs_change                0.004377            0.003336   1.312121
+jx__mean_abs_change                0.019072            0.022895   0.833034
+jz__mean_abs_change                0.016330            0.021462   0.760863
+az__mean_abs_change                0.006075            0.009851   0.616707
+ax__mean_abs_change                0.005498            0.010218   0.538031
+jy__mean_abs_change                0.009331            0.017970   0.519234
+ay__mean_abs_change                0.004196            0.008761   0.478919
+jx__standard_deviation             0.008370            0.019336   0.432879
+jx__root_mean_square               0.008370            0.019336   0.432878
+ap__standard_deviation             0.008293            0.020787   0.398926
+ap__mean_abs_change                0.002312            0.006336   0.364863
+ge__standard_deviation             6.190281           19.116946   0.323811
+
+# CROSS-VALIDATION SUMMARY
+------------------------------
+          fit_time  score_time  test_accuracy  train_accuracy  test_precision  train_precision  test_recall  train_recall   test_f1  train_f1  overfit_gap
+Fold 1   50.720256    0.082777       0.600000             1.0        0.384615              1.0     0.600000           1.0  0.468750       1.0     0.400000
+Fold 2   52.806491    0.075323       0.556250             1.0        0.386285              1.0     0.556250           1.0  0.455943       1.0     0.443750
+Fold 3   48.665759    0.093300       0.528571             1.0        0.463659              1.0     0.528571           1.0  0.493992       1.0     0.471429
+Fold 4   51.708063    0.069207       0.571429             1.0        0.326531              1.0     0.571429           1.0  0.415584       1.0     0.428571
+Mean     50.975142    0.080152       0.564062             1.0        0.390272              1.0     0.564062           1.0  0.458567       1.0     0.435938
+Std Dev   1.759662    0.010374       0.029813             0.0        0.056263              0.0     0.029813           0.0  0.032726       0.0     0.029813
+
+# WINDOW-LEVEL CLASSIFICATION REPORT
+------------------------------
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00        80
+           1       0.61      0.89      0.73       380
+           2       0.00      0.00      0.00       140
+
+    accuracy                           0.56       600
+   macro avg       0.20      0.30      0.24       600
+weighted avg       0.39      0.56      0.46       600
+
+# TRIAL-LEVEL PERFORMANCE
+------------------------------
+Global Trial Accuracy: 0.5650
+Avg Confidence:        0.6822
+Avg Margin:            0.4476
+
+## Trial Confusion Matrix
+        Pred_0  Pred_1  Pred_2
+True_0       0      75       5
+True_1       8     339      33
+True_2       0     140       0
+
+# PER-PARTICIPANT BREAKDOWN (TRIAL-LEVEL)
+------------------------------
+             Trial_Accuracy  Avg_Confidence  Total_Trials
+Participant                                              
+30                     0.00          0.7680            20
+9                      0.00          0.6114            20
+1                      0.00          0.6498            20
+6                      0.00          0.7856            20
+13                     0.00          0.6236            20
+22                     0.00          0.6792            20
+26                     0.00          0.7494            20
+3                      0.00          0.7108            20
+11                     0.00          0.6614            20
+25                     0.00          0.6936            20
+27                     0.00          0.7876            20
+12                     0.20          0.5014            20
+19                     0.55          0.5050            20
+29                     0.80          0.6778            20
+2                      0.80          0.6184            20
+10                     0.85          0.6214            20
+14                     0.90          0.6178            20
+28                     0.95          0.6762            20
+5                      0.95          0.6842            20
+15                     0.95          0.6564            20
+23                     1.00          0.6346            20
+18                     1.00          0.8320            20
+21                     1.00          0.7054            20
+17                     1.00          0.7758            20
+8                      1.00          0.7314            20
+7                      1.00          0.7718            20
+24                     1.00          0.6850            20
+16                     1.00          0.6108            20
+4                      1.00          0.6810            20
+20                     1.00          0.7578            20
+
+# FEATURE STABILITY
+------------------------------
+Stable in 100% of folds (18 features):
+p__root_mean_square, p__mean_abs_change, ax__mean_abs_change, ay__mean_abs_change, az__standard_deviation, az__root_mean_square, az__mean_abs_change, gx__mean_abs_change, gy__mean_abs_change, gz__mean_abs_change, jx__mean_abs_change, jy__mean_abs_change, jz__standard_deviation, jz__root_mean_square, jz__mean_abs_change, ge__standard_deviation, ge__root_mean_square, ge__mean_abs_change

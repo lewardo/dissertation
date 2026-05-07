@@ -19,14 +19,14 @@ def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
         ('scaler', StandardScaler()),
         ('reducer', SelectKBest(f_classif, k=100)),
         ('selector', RFECV(
-            estimator=RandomForestClassifier(n_estimators=50, n_jobs=-1),
-            min_features_to_select=10,
+            estimator=RandomForestClassifier(n_estimators=100, n_jobs=-1),
+            # min_features_to_select=10,
             step=0.05
         )),
         ('classifier', RandomForestClassifier(
-            n_estimators=100, 
-            max_depth=5,
-            class_weight='balanced',
+            n_estimators=1000, 
+            # max_depth=5,
+            # class_weight='balanced',
             n_jobs=-1,
         ))
     ])
