@@ -105,7 +105,6 @@ def get_stable_features(cv_results, features):
     feature_counts = pd.Series(0, index=features.columns)
     try:
         for model in cv_results['estimator']:
-            # Compatibility for Pipeline(reducer -> selector) or simple selector
             if 'reducer' in model.named_steps and 'selector' in model.named_steps:
                 mask = model.named_steps['reducer'].get_support()
                 sub_mask = model.named_steps['selector'].get_support()

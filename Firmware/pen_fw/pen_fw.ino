@@ -11,10 +11,8 @@ Adafruit_BNO08x bno08x;
 
 sh2_SensorValue_t sensorValue;
 
-// timing variables
 long reportInterval_us = 20000;
 
-// sensor values
 Quaternion rotation;
 Vector linearAccel;
 Vector gyro;
@@ -39,9 +37,8 @@ void setup() {
   Wire.setClock(100000); // standard low speed
 
   Serial1.begin(921600); // high speed
-  Serial1.setRxBufferSize(4096);  // bigger buffer for volume of data
+  Serial1.setRxBufferSize(4096);  // bigger buffer
   
-  // initialise IMU over UART
   if (!bno08x.begin_UART(&Serial1)) {
     Serial.println("INFO: Failed to find BNO085 via UART!");
     while (1) { delay(100); }
@@ -49,12 +46,10 @@ void setup() {
     Serial.println("INFO: BNO085 Found via UART!");
   }
 
-  // Enable reports from IMU
   bno08x.enableReport(SH2_ROTATION_VECTOR, reportInterval_us);
   bno08x.enableReport(SH2_LINEAR_ACCELERATION, reportInterval_us);
   bno08x.enableReport(SH2_GYROSCOPE_CALIBRATED, reportInterval_us);
 
-  // initialise the ADC library
   if (!mcp.begin(0x68, &Wire)) { 
     Serial.println("INFO: Failed to find MCP3421 chip");
     while (1) { delay(100); }
@@ -62,10 +57,9 @@ void setup() {
     Serial.println("INFO: MCP3421 Found!");
   }
 
-  // set the ADC parameters
   mcp.setGain(GAIN_1X);
-  mcp.setResolution(RESOLUTION_14_BIT); // 240 SPS (12-bit ENOB)
-  mcp.setMode(MODE_CONTINUOUS); // Options: MODE_CONTINUOUS, MODE_ONE_SHOT
+  mcp.setResolution(RESOLUTION_14_BIT); // 240hz=12-bit enob
+  mcp.setMode(MODE_CONTINUOUS); 
 
   Serial.println("INFO: Sensors Ready. Send 'S' to Start.");
 }
@@ -93,7 +87,7 @@ void loop() {
   }
 
   if (mcp.isReady()) {
-      pressure = (8191.0 - mcp.readADC()) / 8192; // Read ADC value and scale to [0, 1) range
+      pressure = (8191.0 - mcp.readADC()) / 8192; // scale to [0, 1) range
       hasPressure = true;
   }
 
