@@ -137,7 +137,6 @@ def generate_full_report(pipeline, cv_results, features, classes, groups, group_
     return results
 
 def save_report_to_file(report_bundle):
-    """Writes the comprehensive report to a formatted text file."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     os.makedirs("reports", exist_ok=True)
     filename = os.path.join("reports", f"comprehensive_modelling_report_{timestamp}.txt")
