@@ -20,7 +20,7 @@ bad_participants = [0]
 
 if __name__ == "__main__":
     arguments = parse_arguments()
-    # intro & methodology
+
     print("Loading file keys")
     trial_info, all_keys = load_trial_keys("Raw")
     participant, attempt, script, stress, fatigue = all_keys
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         for trial_key, trial_series in participant_series:  
             trial_series = (trial_series - participant_mean) / participant_std      
             trial_series = augment_sequence(trial_series, args=arguments)
-            # rank sum test
+
             trial_windows, window_keys = window_sequence(trial_series, trial_key, args=arguments)
             
             for window, window_key in zip(trial_windows, window_keys):

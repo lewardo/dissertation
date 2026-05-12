@@ -13,7 +13,6 @@ from sklearn.svm import SVC
 # from skrebate import ReliefF
 
 def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
-    # Build the pipeline
     folds = StratifiedGroupKFold(n_splits=4)
     pipeline = Pipeline([
         ('scaler', StandardScaler()),
@@ -24,8 +23,8 @@ def model_series(features: pd.DataFrame, classes: pd.Series, groups: pd.Series):
             step=0.05
         )),
         ('classifier', RandomForestClassifier(
-            n_estimators=1000, 
-            # max_depth=5,
+            n_estimators=50, 
+            max_depth=5,
             # class_weight='balanced',
             n_jobs=-1,
         ))

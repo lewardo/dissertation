@@ -8,7 +8,6 @@ from datetime import datetime
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 def get_dataset_stats(features, classes, groups, trial_ids):
-    """Generates statistics about the raw data structure and class balance."""
     stats = {
         'n_samples': len(classes),
         'n_participants': groups.nunique(),
@@ -20,7 +19,6 @@ def get_dataset_stats(features, classes, groups, trial_ids):
     return stats
 
 def analyze_variability(features, groups):
-    """Calculates Between-Subject and Within-Subject variability for features."""
     if not isinstance(features, pd.DataFrame):
         return None
     
@@ -38,7 +36,6 @@ def analyze_variability(features, groups):
     return variability_df
 
 def get_detailed_cv_summary(cv_results):
-    """Generates a summary table with Mean and Std Dev for all CV metrics."""
     cv_report = pd.DataFrame(cv_results).drop(columns=['estimator'])
     cv_report.index = [f"Fold {i+1}" for i in range(len(cv_report))]
     
